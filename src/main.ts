@@ -51,42 +51,18 @@ export function main() {
   //   0x14,
   //   "*"
   // )
-  on("equip", (e) => {
-    // SlotMask.Body
-    // SlotMask.PelvisUnder
-    // SlotMask.PelvisOuter
-    printConsole(Armor.from(e.baseObj)?.getSlotMask().toString(16))
-  })
 
-  // hooks.sendAnimationEvent.add(
-  //   {
-  //     enter(_) {},
-  //     leave(c) {
-  //       if (c.animationSucceeded)
-  //         once("update", () => TrySkimpify(c.selfId, evt.sneak.chance))
-  //     },
-  //   },
-  //   0x14,
-  //   0x14,
-  //   "SneakStart"
-  // )
   AddSkimpifyEvent("SneakStart", evt.sneak.chance)
   // AddSkimpifyEvent("attackStart", evt.sneak.chance)
 
-  hooks.sendAnimationEvent.add(
-    {
-      enter(_) {},
-      leave(c) {
-        if (c.animationSucceeded)
-          once("update", () => TryRestore(c.selfId, evt.sneak.recoveryTime))
-      },
-    },
-    0x14,
-    0x14,
-    "SneakStop"
-  )
+  AddRestoreEvent("SneakStop", evt.sneak.recoveryTime)
 }
 
+/** Adds an animation hook that may put on some skimpy clothes on an `Actor`.
+ *
+ * @param name Animation name.
+ * @param chance Change to skimpify when the event happens.
+ */
 function AddSkimpifyEvent(name: string, chance: SkimpyEventChance) {
   hooks.sendAnimationEvent.add(
     {
@@ -94,6 +70,26 @@ function AddSkimpifyEvent(name: string, chance: SkimpyEventChance) {
       leave(c) {
         if (c.animationSucceeded)
           once("update", () => TrySkimpify(c.selfId, chance))
+      },
+    },
+    0x14,
+    0x14,
+    name
+  )
+}
+
+/** Adds an animation hook that may put on some modest clothes on an `Actor`.
+ *
+ * @param name Animation name.
+ * @param time Time that will pass before armors are restored.
+ */
+function AddRestoreEvent(name: string, time: SkimpyEventRecoveryTime) {
+  hooks.sendAnimationEvent.add(
+    {
+      enter(_) {},
+      leave(c) {
+        if (c.animationSucceeded)
+          once("update", () => TryRestore(c.selfId, time))
       },
     },
     0x14,
@@ -140,10 +136,11 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
     if (!act) return
 
     if (
+      act.isDead() ||
+      act.isSprinting() ||
       act.isSneaking() ||
       act.isInCombat() ||
-      act.isSprinting() ||
-      act.isSwimming
+      act.isSwimming()
     )
       return
 
@@ -163,23 +160,3 @@ const Swap = (a: Actor, aO: Armor, aN: Armor) => {
 
 const GetChance = (x: number | undefined) =>
   x === undefined ? () => 0 : () => Math.random() <= x
-
-const Test = () => {
-  const pl = Game.getPlayer() as Actor
-  const e = pl.getWornForm(4)
-  if (!e) return
-
-  const Swap = (a: Armor) => {
-    pl.unequipItem(e, false, true)
-    pl.equipItem(a, false, true)
-  }
-  const a = Armor.from(e)
-  const s = GetSkimpy(a)
-  if (s) {
-    Swap(s)
-    return
-  }
-
-  const m = GetModest(a)
-  if (m) Swap(m)
-}
