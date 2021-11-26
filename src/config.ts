@@ -11,6 +11,7 @@ export interface SkimpyEvents {
   sprint: SkimpyEvent
   attack: SkimpyEvent
   powerAttack: SkimpyEvent
+  block: SkimpyEvent
 }
 
 /** Configuration for one single event. */

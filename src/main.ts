@@ -15,7 +15,7 @@ import { evt, SkimpyEventChance, SkimpyEventRecoveryTime } from "./config"
 const playerId = 0x14
 
 export function main() {
-  LogAnimations(false)
+  LogAnimations(true)
 
   AddSkimpifyEvent("SneakStart", evt.sneak.chance)
   AddRestoreEvent("SneakStop", evt.sneak.recoveryTime)
@@ -23,12 +23,16 @@ export function main() {
   AddSkimpifyEvent("SprintStart", evt.sprint.chance)
   AddRestoreEvent("SprintStop", evt.sprint.recoveryTime)
 
+  // Combat related
   AddSkimpifyEvent("attackStart", evt.attack.chance)
   AddSkimpifyEvent("attackPowerStartInPlace", evt.powerAttack.chance)
   AddSkimpifyEvent("attackPowerStartForward", evt.powerAttack.chance)
   AddSkimpifyEvent("attackPowerStartBackward", evt.powerAttack.chance)
   AddSkimpifyEvent("attackPowerStartRight", evt.powerAttack.chance)
   AddSkimpifyEvent("attackPowerStartLeft", evt.powerAttack.chance)
+
+  AddSkimpifyEvent("bashStart", evt.block.chance)
+
   AddRestoreEvent("Unequip", evt.attack.recoveryTime)
 }
 
