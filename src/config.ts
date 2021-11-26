@@ -8,6 +8,9 @@ export const evt = settings[n]["events"] as SkimpyEvents
 /** Configuration for all events. */
 export interface SkimpyEvents {
   sneak: SkimpyEvent
+  sprint: SkimpyEvent
+  attack: SkimpyEvent
+  powerAttack: SkimpyEvent
 }
 
 /** Configuration for one single event. */

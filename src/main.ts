@@ -1,61 +1,35 @@
-import { DebugLib, FormLib, Hotkeys, Misc } from "DmLib"
-import {
-  ChangeType,
-  GetModest,
-  GetModestData,
-  GetSkimpy,
-  GetSlip,
-} from "skimpify-api"
+import { DebugLib, FormLib } from "DmLib"
+import { ChangeType, GetModestData, GetSlip } from "skimpify-api"
 import {
   Actor,
   Armor,
+  Debug,
   Game,
   hooks,
-  on,
   once,
   printConsole,
-  Debug,
-  SlotMask,
-  settings,
-  Utility,
+  writeLogs,
 } from "skyrimPlatform"
-import {
-  SkimpyEvents,
-  SkimpyEventChance,
-  evt,
-  SkimpyEventRecoveryTime,
-} from "./config"
-
-const enum Anim {
-  SprintStart = "SprintStart",
-  SprintStop = "SprintStop",
-  SneakStart = "SneakStart",
-  attackStart = "attackStart",
-  attackPowerStartInPlace = "attackPowerStartInPlace",
-  attackPowerStartForward = "attackPowerStartForward",
-}
+import { evt, SkimpyEventChance, SkimpyEventRecoveryTime } from "./config"
 
 const playerId = 0x14
 
 export function main() {
-  // hooks.sendAnimationEvent.add(
-  //   {
-  //     enter(c) {
-  //       writeLogs("animations", c.animEventName)
-  //     },
-  //     leave(c) {
-  //       writeLogs("animations", c.animEventName)
-  //     },
-  //   },
-  //   0x14,
-  //   0x14,
-  //   "*"
-  // )
+  LogAnimations(false)
 
   AddSkimpifyEvent("SneakStart", evt.sneak.chance)
-  // AddSkimpifyEvent("attackStart", evt.sneak.chance)
-
   AddRestoreEvent("SneakStop", evt.sneak.recoveryTime)
+
+  AddSkimpifyEvent("SprintStart", evt.sprint.chance)
+  AddRestoreEvent("SprintStop", evt.sprint.recoveryTime)
+
+  AddSkimpifyEvent("attackStart", evt.attack.chance)
+  AddSkimpifyEvent("attackPowerStartInPlace", evt.powerAttack.chance)
+  AddSkimpifyEvent("attackPowerStartForward", evt.powerAttack.chance)
+  AddSkimpifyEvent("attackPowerStartBackward", evt.powerAttack.chance)
+  AddSkimpifyEvent("attackPowerStartRight", evt.powerAttack.chance)
+  AddSkimpifyEvent("attackPowerStartLeft", evt.powerAttack.chance)
+  AddRestoreEvent("Unequip", evt.attack.recoveryTime)
 }
 
 /** Adds an animation hook that may put on some skimpy clothes on an `Actor`.
@@ -114,7 +88,6 @@ function TrySkimpify(actorId: number, c: SkimpyEventChance) {
       const na = GetSlip(a)
       if (!na) return
       Swap(ac, a, na)
-      Debug.notification(a.getName())
     }
   })
 }
@@ -124,17 +97,10 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
   if (!ac) return
 
   const max = t.max === undefined ? 0 : t.max
-  const min = t.min === undefined || t.max === 0 ? 0 : t.min
-  const w = Math.random() * (max - min) + min
+  const min = t.min === undefined || max <= 0 ? 0 : t.min
+  const w = max <= 0 ? 0 : Math.random() * (max - min) + min
 
-  const actor = FormLib.PreserveActor(ac)
-  const f = async () => {
-    printConsole(`Wait ${w} seconds`)
-    await Utility.wait(w)
-
-    const act = actor()
-    if (!act) return
-
+  FormLib.WaitActor(ac, w, (act) => {
     if (
       act.isDead() ||
       act.isSprinting() ||
@@ -149,8 +115,7 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
       if (!d.armor || d.kind === ChangeType.damage) return
       Swap(act, a, d.armor)
     })
-  }
-  f()
+  })
 }
 
 const Swap = (a: Actor, aO: Armor, aN: Armor) => {
@@ -160,3 +125,20 @@ const Swap = (a: Actor, aO: Armor, aN: Armor) => {
 
 const GetChance = (x: number | undefined) =>
   x === undefined ? () => 0 : () => Math.random() <= x
+
+function LogAnimations(log: boolean) {
+  if (!log) return
+  hooks.sendAnimationEvent.add(
+    {
+      enter(c) {
+        writeLogs("animations", c.animEventName)
+      },
+      leave(c) {
+        writeLogs("animations", c.animEventName)
+      },
+    },
+    0x14,
+    0x14,
+    "*"
+  )
+}
