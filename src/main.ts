@@ -1,5 +1,14 @@
 import { DebugLib, FormLib } from "DmLib"
-import { ChangeType, GetModestData, GetSlip } from "skimpify-api"
+import {
+  ChangeType,
+  GetChange,
+  GetDamage,
+  GetModestData,
+  GetSlip,
+  HasSkimpy,
+  IsRegistered,
+  SkimpyFunc,
+} from "skimpify-api"
 import {
   Actor,
   Armor,
@@ -82,18 +91,45 @@ const d = DebugLib.Log.CreateAll(
   DebugLib.Log.ConsoleFmt
 )
 
+interface ChangePair {
+  from: Armor
+  to: Armor
+}
+
 function TrySkimpify(actorId: number, c: SkimpyEventChance) {
   const ac = Actor.from(Game.getFormEx(actorId))
   if (!ac) return
-  const TrySlip = GetChance(c.slip)
 
-  FormLib.ForEachEquippedArmor(ac, (a) => {
-    if (TrySlip()) {
-      const na = GetSlip(a)
-      if (!na) return
-      Swap(ac, a, na)
-    }
-  })
+  let changeable = FormLib.GetEquippedArmors(ac).filter((v) => HasSkimpy(v))
+
+  /** Makes a change if a chance is met. */
+  const C = (chance: number | undefined, Skimpify: SkimpyFunc) => {
+    if (chance === undefined || chance <= 0) return []
+
+    const TryChange = GetChance(chance)
+    let r: ChangePair[] = []
+
+    // Use `filter` to discard elements that were already added to some change list
+    changeable = changeable.filter((v) => {
+      if (TryChange()) {
+        const na = Skimpify(v)
+        if (!na) return true
+
+        r.push({ from: v, to: na })
+        return false // Element was added. Discard from possible changes.
+      }
+      return true
+    })
+    return r
+  }
+
+  const slips = C(c.slip, GetSlip)
+  const changes = C(c.change, GetChange)
+  const damages = C(c.damage, GetDamage)
+
+  slips.forEach((v) => Swap(ac, v.from, v.to))
+  changes.forEach((v) => Swap(ac, v.from, v.to))
+  damages.forEach((v) => Swap(ac, v.from, v.to))
 }
 
 function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
@@ -127,8 +163,7 @@ const Swap = (a: Actor, aO: Armor, aN: Armor) => {
   a.equipItem(aN, false, true)
 }
 
-const GetChance = (x: number | undefined) =>
-  x === undefined ? () => 0 : () => Math.random() <= x
+const GetChance = (x: number) => () => Math.random() <= x
 
 function LogAnimations(log: boolean) {
   if (!log) return
