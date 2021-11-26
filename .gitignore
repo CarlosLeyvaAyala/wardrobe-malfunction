@@ -102,3 +102,11 @@ dist
 
 # TernJS port file
 .tern-port
+release/auto-unequip-ammo.js
+*.zip
+Platform/Plugins/auto-unequip-ammo.js
+*.7z
+
+_img/*
+Platform/Plugins/skimpify-framework.js
+.vscode/numbered-bookmarks.json

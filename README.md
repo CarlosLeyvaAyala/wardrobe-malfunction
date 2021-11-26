@@ -1,2 +1,2 @@
-# wardrobe-malfunction
-Skyrim SE mod for doing wardrobe malfunctions
+# Wardrobe Malfunction
+Skyrim Platform plugin. Wardrobe malfunctions while in action.
