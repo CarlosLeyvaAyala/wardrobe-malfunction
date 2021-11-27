@@ -100,23 +100,24 @@ function TrySkimpify(actorId: number, c: SkimpyEventChance) {
   const ac = Actor.from(Game.getFormEx(actorId))
   if (!ac) return
 
-  let changeable = FormLib.GetEquippedArmors(ac).filter((v) => HasSkimpy(v))
+  /** Equipped armors that have a more skimpy version. */
+  let skimpyable = FormLib.GetEquippedArmors(ac).filter((v) => HasSkimpy(v))
 
-  /** Makes a change if a chance is met. */
+  /** Marks a change of armors if a chance is met. */
   const C = (chance: number | undefined, Skimpify: SkimpyFunc) => {
     if (chance === undefined || chance <= 0) return []
 
-    const TryChange = GetChance(chance)
+    const CanChange = GetChance(chance)
     let r: ChangePair[] = []
 
-    // Use `filter` to discard elements that were already added to some change list
-    changeable = changeable.filter((v) => {
-      if (TryChange()) {
+    // Use `filter` to discard elements that are being added to some change list
+    skimpyable = skimpyable.filter((v) => {
+      if (CanChange()) {
         const na = Skimpify(v)
         if (!na) return true
 
         r.push({ from: v, to: na })
-        return false // Element was added. Discard from possible changes.
+        return false // Avoid selected armor from being changed by other functions.
       }
       return true
     })
@@ -146,16 +147,23 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
       act.isSprinting() ||
       act.isSneaking() ||
       act.isInCombat() ||
-      act.isSwimming()
+      act.isSwimming() ||
+      act.isWeaponDrawn()
     )
       return
 
     FormLib.ForEachEquippedArmor(act, (a) => {
-      const d = GetModestData(a)
-      if (!d.armor || d.kind === ChangeType.damage) return
-      Swap(act, a, d.armor)
+      const na = MostModest(a)
+      if (na) Swap(act, a, na)
     })
   })
+}
+
+function MostModest(a: Armor): Armor | null {
+  const p = GetModestData(a)
+  if (!p.armor || p.kind === ChangeType.damage) return null
+  const pp = MostModest(p.armor)
+  return pp ? pp : p.armor
 }
 
 const Swap = (a: Actor, aO: Armor, aN: Armor) => {
