@@ -1,39 +1,41 @@
 import { DebugLib, FormLib } from "DmLib"
+import * as JDB from "JContainers/JDB"
+import * as JMap from "JContainers/JMap"
+import { JMapL } from "JContainers/JTs"
 import {
-  ChangeType,
+  ChangeRel,
   GetChange,
   GetDamage,
   GetModestData,
   GetSlip,
   HasSkimpy,
-  IsRegistered,
   SkimpyFunc,
 } from "skimpify-api"
+import { Actor, Armor, Game, hooks, on, once, writeLogs } from "skyrimPlatform"
 import {
-  Actor,
-  Armor,
-  Debug,
-  Game,
-  hooks,
-  once,
-  printConsole,
-  writeLogs,
-} from "skyrimPlatform"
-import { evt, SkimpyEventChance, SkimpyEventRecoveryTime } from "./config"
+  evt,
+  logAnim,
+  SkimpyEventChance,
+  SkimpyEventRecoveryTime,
+} from "./config"
 
 const playerId = 0x14
 
 export function main() {
-  LogAnimations(true)
+  LogAnimations(logAnim)
 
   AddSkimpifyEvent("SneakStart", evt.sneak.chance)
   AddRestoreEvent("SneakStop", evt.sneak.recoveryTime)
+
+  AddSkimpifyEvent("SwimStart", evt.swim.chance)
+  AddRestoreEvent("swimStop", evt.swim.recoveryTime)
 
   AddSkimpifyEvent("SprintStart", evt.sprint.chance)
   AddRestoreEvent("SprintStop", evt.sprint.recoveryTime)
 
   // Combat related
   AddSkimpifyEvent("attackStart", evt.attack.chance)
+  AddSkimpifyEvent("bowAttackStart", evt.attack.chance)
   AddSkimpifyEvent("attackPowerStartInPlace", evt.powerAttack.chance)
   AddSkimpifyEvent("attackPowerStartForward", evt.powerAttack.chance)
   AddSkimpifyEvent("attackPowerStartBackward", evt.powerAttack.chance)
@@ -43,6 +45,26 @@ export function main() {
   AddSkimpifyEvent("bashStart", evt.block.chance)
 
   AddRestoreEvent("Unequip", evt.attack.recoveryTime)
+
+  on("hit", (e) => {
+    const c = e.isHitBlocked
+      ? evt.block.chance
+      : e.isBashAttack || e.isPowerAttack
+      ? evt.powerAttacked.chance
+      : evt.attacked.chance
+    TrySkimpify(e.target.getFormID(), c, true)
+  })
+
+  // const OnT = Hotkeys.ListenTo(DxScanCode.Enter)
+  // const T = () => TrySkimpify(playerId, evt.powerAttacked.chance, true)
+
+  // const OnT2 = Hotkeys.ListenTo(DxScanCode.RightControl)
+  // const T2 = () => TryRestore(playerId, evt.swim.recoveryTime)
+
+  // on("update", () => {
+  //   OnT(T)
+  //   OnT2(T2)
+  // })
 }
 
 /** Adds an animation hook that may put on some skimpy clothes on an `Actor`.
@@ -96,12 +118,47 @@ interface ChangePair {
   to: Armor
 }
 
-function TrySkimpify(actorId: number, c: SkimpyEventChance) {
+interface ArmorTypes {
+  /** Equipped armors that have a more skimpy version. */
+  skimpable: Armor[]
+  /** Equipped armors that don't have an skimpy version, so they can be unequipped on hit. */
+  unequipable: Armor[]
+}
+
+function GetSkimpable(ac: Actor): ArmorTypes {
+  return {
+    skimpable: FormLib.GetEquippedArmors(ac).filter((v) => HasSkimpy(v)),
+    unequipable: [],
+  }
+}
+
+function DivideByType(ac: Actor): ArmorTypes {
+  const equipped = FormLib.GetEquippedArmors(ac)
+  let s: Armor[] = []
+  let u: Armor[] = []
+
+  equipped.forEach((a) => {
+    if (HasSkimpy(a)) s.push(a)
+    else u.push(a)
+  })
+
+  return {
+    skimpable: s,
+    unequipable: u,
+  }
+}
+
+function TrySkimpify(
+  actorId: number,
+  c: SkimpyEventChance,
+  canUnequip: boolean = false
+) {
   const ac = Actor.from(Game.getFormEx(actorId))
   if (!ac) return
 
-  /** Equipped armors that have a more skimpy version. */
-  let skimpyable = FormLib.GetEquippedArmors(ac).filter((v) => HasSkimpy(v))
+  let { skimpable, unequipable } = canUnequip
+    ? DivideByType(ac)
+    : GetSkimpable(ac)
 
   /** Marks a change of armors if a chance is met. */
   const C = (chance: number | undefined, Skimpify: SkimpyFunc) => {
@@ -111,7 +168,7 @@ function TrySkimpify(actorId: number, c: SkimpyEventChance) {
     let r: ChangePair[] = []
 
     // Use `filter` to discard elements that are being added to some change list
-    skimpyable = skimpyable.filter((v) => {
+    skimpable = skimpable.filter((v) => {
       if (CanChange()) {
         const na = Skimpify(v)
         if (!na) return true
@@ -131,6 +188,41 @@ function TrySkimpify(actorId: number, c: SkimpyEventChance) {
   slips.forEach((v) => Swap(ac, v.from, v.to))
   changes.forEach((v) => Swap(ac, v.from, v.to))
   damages.forEach((v) => Swap(ac, v.from, v.to))
+
+  if (!canUnequip) return
+
+  TryUnequip(ac, skimpable, unequipable, c.unequip)
+}
+
+function TryUnequip(ac: Actor, s: Armor[], u: Armor[], c: number | undefined) {
+  if (!c || c <= 0) return
+  const Try = GetChance(c)
+  const e = s.concat(u)
+  const S = ac.getFormID() === playerId ? SavePlayerEquipment : () => {}
+
+  e.forEach((a) => {
+    if (!Try()) return
+    ac.unequipItem(a, false, true)
+    S(a)
+  })
+}
+
+const playerEqK = ".wardrobe-malfunction.playerEq"
+
+function SavePlayerEquipment(a: Armor) {
+  const k = playerEqK + "." + a.getSlotMask()
+  JDB.solveFormSetter(k, a, true)
+}
+
+function RestorePlayerEquipment() {
+  const p = Game.getPlayer() as Actor
+  JMapL.ForAllKeys(JDB.solveObj(playerEqK), (k, o) => {
+    const a = JMap.getForm(o, k)
+    if (!a) return
+    p.equipItem(a, false, true)
+    // Delete item from saved forms
+    JMap.setForm(o, k, null)
+  })
 }
 
 function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
@@ -152,6 +244,8 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
     )
       return
 
+    if (actorId === playerId) RestorePlayerEquipment()
+
     FormLib.ForEachEquippedArmor(act, (a) => {
       const na = MostModest(a)
       if (na) Swap(act, a, na)
@@ -161,7 +255,7 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
 
 function MostModest(a: Armor): Armor | null {
   const p = GetModestData(a)
-  if (!p.armor || p.kind === ChangeType.damage) return null
+  if (!p.armor || p.kind === ChangeRel.damage) return null
   const pp = MostModest(p.armor)
   return pp ? pp : p.armor
 }

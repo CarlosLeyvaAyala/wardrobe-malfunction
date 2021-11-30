@@ -1,6 +1,8 @@
 import { settings } from "skyrimPlatform"
 
 const n = "wardrobe-malfunction"
+//@ts-ignore
+export const logAnim = settings[n]["config"].developer.logAnims as boolean
 
 /** Events configuration. */
 export const evt = settings[n]["events"] as SkimpyEvents
@@ -8,10 +10,13 @@ export const evt = settings[n]["events"] as SkimpyEvents
 /** Configuration for all events. */
 export interface SkimpyEvents {
   sneak: SkimpyEvent
+  swim: SkimpyEvent
   sprint: SkimpyEvent
   attack: SkimpyEvent
   powerAttack: SkimpyEvent
   block: SkimpyEvent
+  attacked: SkimpyEvent
+  powerAttacked: SkimpyEvent
 }
 
 /** Configuration for one single event. */
@@ -25,6 +30,7 @@ export interface SkimpyEventChance {
   slip: number | undefined
   change: number | undefined
   damage: number | undefined
+  unequip: number | undefined
 }
 
 /** Time (in seconds) before trying to put non-skimpy equipment back. */
