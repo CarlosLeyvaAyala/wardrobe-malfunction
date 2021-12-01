@@ -61,7 +61,7 @@ export function main() {
 
   AddSkimpifyEvent("bashStart", evt.block.chance)
 
-  AddRestoreEvent("Unequip", evt.attack.recoveryTime)
+  AddRestoreEvent("Unequip", evt.attack.recoveryTime) // Sheathe weapon
 
   // Peasants
   AddSkimpifyEvent("IdleExamine", evt.townspeople.chance, false)
