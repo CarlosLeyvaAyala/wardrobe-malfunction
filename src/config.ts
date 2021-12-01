@@ -14,6 +14,7 @@ export const evt = settings[n]["events"] as SkimpyEvents
 
 /** Configuration for all events. */
 export interface SkimpyEvents {
+  townspeople: SkimpyEvent
   sneak: SkimpyEvent
   swim: SkimpyEvent
   sprint: SkimpyEvent

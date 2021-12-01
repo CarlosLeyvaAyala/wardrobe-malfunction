@@ -21,7 +21,7 @@ import {
   hooks,
   on,
   once,
-  printConsole,
+  SendAnimationEventHook,
   Utility,
   Weapon,
   WeaponType,
@@ -63,6 +63,14 @@ export function main() {
 
   AddRestoreEvent("Unequip", evt.attack.recoveryTime)
 
+  // Peasants
+  AddSkimpifyEvent("IdleExamine", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleCounterStart", evt.townspeople.chance, false)
+  // IdleFeedChicken, IdleCarryBucketPourEnter
+  AddRestoreEvent("IdleStop", evt.townspeople.recoveryTime, false)
+  AddRestoreEvent("IdleStopInstant", evt.townspeople.recoveryTime, false)
+
+  /** This event counts for any Actor in combat */
   on("hit", (e) => {
     const w = Weapon.from(e.source)
     if (!w) return
@@ -94,24 +102,34 @@ export function main() {
   })
 }
 
+function AddHook(name: string, f: (id: number) => void, playerOnly: boolean) {
+  const filter = playerOnly ? playerId : undefined
+  hooks.sendAnimationEvent.add(
+    {
+      enter(_) {},
+      leave(c) {
+        if (c.animationSucceeded) once("update", () => f(c.selfId))
+      },
+    },
+    filter,
+    filter,
+    name
+  )
+}
+
 /** Adds an animation hook that may put on some skimpy clothes on an `Actor`.
  *
  * @param name Animation name.
  * @param chance Change to skimpify when the event happens.
  */
-function AddSkimpifyEvent(name: string, chance: SkimpyEventChance) {
-  hooks.sendAnimationEvent.add(
-    {
-      enter(_) {},
-      leave(c) {
-        if (c.animationSucceeded)
-          once("update", () => TrySkimpify(c.selfId, chance))
-      },
-    },
-    0x14,
-    0x14,
-    name
-  )
+function AddSkimpifyEvent(
+  name: string,
+  chance: SkimpyEventChance,
+  playerOnly: boolean = true
+) {
+  if (!chance.slip && !chance.change && !chance.damage) return
+
+  AddHook(name, (selfId) => TrySkimpify(selfId, chance), playerOnly)
 }
 
 /** Adds an animation hook that may put on some modest clothes on an `Actor`.
@@ -119,19 +137,12 @@ function AddSkimpifyEvent(name: string, chance: SkimpyEventChance) {
  * @param name Animation name.
  * @param time Time that will pass before armors are restored.
  */
-function AddRestoreEvent(name: string, time: SkimpyEventRecoveryTime) {
-  hooks.sendAnimationEvent.add(
-    {
-      enter(_) {},
-      leave(c) {
-        if (c.animationSucceeded)
-          once("update", () => TryRestore(c.selfId, time))
-      },
-    },
-    0x14,
-    0x14,
-    name
-  )
+function AddRestoreEvent(
+  name: string,
+  time: SkimpyEventRecoveryTime,
+  playerOnly: boolean = true
+) {
+  AddHook(name, (selfId) => TryRestore(selfId, time), playerOnly)
 }
 
 const d = DebugLib.Log.CreateAll(
@@ -251,7 +262,6 @@ function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
 
   JMapL.ForAllKeys(JDB.solveObj(playerEqK), (k, o) => {
     const a = f(JMap.getForm(o, k))
-    printConsole(a?.getName())
     if (!a) return
     p.equipItem(a, false, true)
     // Delete item from saved forms
@@ -316,17 +326,23 @@ const GetChance = (x: number) => () => Math.random() <= x
 
 function LogAnimations(log: boolean) {
   if (!log) return
+  const Ysolda = 0x1a69a
+  const Sigrid = 0x13483
+  const t = Sigrid
+  const L = (c: SendAnimationEventHook.Context) =>
+    writeLogs("animations", c.animEventName)
+
   hooks.sendAnimationEvent.add(
     {
       enter(c) {
-        writeLogs("animations", c.animEventName)
+        L(c)
       },
       leave(c) {
-        writeLogs("animations", c.animEventName)
+        L(c)
       },
     },
-    0x14,
-    0x14,
+    t,
+    t,
     "*"
   )
 }
