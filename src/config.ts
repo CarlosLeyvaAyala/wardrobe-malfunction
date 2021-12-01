@@ -2,7 +2,12 @@ import { settings } from "skyrimPlatform"
 
 const n = "wardrobe-malfunction"
 //@ts-ignore
-export const logAnim = settings[n]["config"].developer.logAnims as boolean
+const devOpt = settings[n]["config"].developer
+export const logAnim = devOpt.logAnims as boolean
+
+//@ts-ignore
+const devUsr = settings[n]["config"].user
+export const restoreEquipC = devUsr.restoreEquipmentChance as number
 
 /** Events configuration. */
 export const evt = settings[n]["events"] as SkimpyEvents

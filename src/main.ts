@@ -1,4 +1,4 @@
-import { DebugLib, FormLib } from "DmLib"
+import { Combinators, DebugLib, FormLib, Hotkeys } from "DmLib"
 import * as JDB from "JContainers/JDB"
 import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
@@ -11,10 +11,26 @@ import {
   HasSkimpy,
   SkimpyFunc,
 } from "skimpify-api"
-import { Actor, Armor, Game, hooks, on, once, writeLogs } from "skyrimPlatform"
+import {
+  Actor,
+  Ammo,
+  Armor,
+  DxScanCode,
+  Form,
+  Game,
+  hooks,
+  on,
+  once,
+  printConsole,
+  Utility,
+  Weapon,
+  WeaponType,
+  writeLogs,
+} from "skyrimPlatform"
 import {
   evt,
   logAnim,
+  restoreEquipC,
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
 } from "./config"
@@ -25,6 +41,7 @@ export function main() {
   LogAnimations(logAnim)
 
   AddSkimpifyEvent("SneakStart", evt.sneak.chance)
+  AddSkimpifyEvent("SneakSprintStartRoll", evt.sneak.chance)
   AddRestoreEvent("SneakStop", evt.sneak.recoveryTime)
 
   AddSkimpifyEvent("SwimStart", evt.swim.chance)
@@ -47,6 +64,12 @@ export function main() {
   AddRestoreEvent("Unequip", evt.attack.recoveryTime)
 
   on("hit", (e) => {
+    const w = Weapon.from(e.source)
+    if (!w) return
+    const t = w.getWeaponType()
+    if (t === WeaponType.Crossbow || t === WeaponType.Bow) return
+
+    if (Ammo.from(e.source)) return
     const c = e.isHitBlocked
       ? evt.block.chance
       : e.isBashAttack || e.isPowerAttack
@@ -61,10 +84,14 @@ export function main() {
   // const OnT2 = Hotkeys.ListenTo(DxScanCode.RightControl)
   // const T2 = () => TryRestore(playerId, evt.swim.recoveryTime)
 
-  // on("update", () => {
-  //   OnT(T)
-  //   OnT2(T2)
-  // })
+  const OnRedress = Hotkeys.ListenTo(DxScanCode.RightControl)
+  const Redress = () => RestorePlayerEquipment(WithChance)
+
+  on("update", () => {
+    OnRedress(Redress)
+    // OnT(T)
+    // OnT2(T2)
+  })
 }
 
 /** Adds an animation hook that may put on some skimpy clothes on an `Actor`.
@@ -214,10 +241,17 @@ function SavePlayerEquipment(a: Armor) {
   JDB.solveFormSetter(k, a, true)
 }
 
-function RestorePlayerEquipment() {
+type FormArg = Form | null | undefined
+type FormToForm = (f: FormArg) => FormArg
+
+const WithChance = (f: FormArg) => (GetChance(restoreEquipC)() ? f : null)
+
+function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
   const p = Game.getPlayer() as Actor
+
   JMapL.ForAllKeys(JDB.solveObj(playerEqK), (k, o) => {
-    const a = JMap.getForm(o, k)
+    const a = f(JMap.getForm(o, k))
+    printConsole(a?.getName())
     if (!a) return
     p.equipItem(a, false, true)
     // Delete item from saved forms
@@ -244,12 +278,25 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
     )
       return
 
-    if (actorId === playerId) RestorePlayerEquipment()
+    if (actorId === playerId) {
+      RestorePlayerEquipment()
+      const f = async () => {
+        await Utility.wait(0.1)
+        RestoreMostModest(Game.getPlayer() as Actor)
+      }
+      f()
+    } else RestoreMostModest(act)
+  })
+}
 
-    FormLib.ForEachEquippedArmor(act, (a) => {
-      const na = MostModest(a)
-      if (na) Swap(act, a, na)
-    })
+/** Restores the most modest version of all armors equipped on an `Actor`.
+ *
+ * @param act Actor to restore their armor.
+ */
+function RestoreMostModest(act: Actor) {
+  FormLib.ForEachEquippedArmor(act, (a) => {
+    const na = MostModest(a)
+    if (na) Swap(act, a, na)
   })
 }
 
