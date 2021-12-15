@@ -1,3 +1,4 @@
+import { Hotkeys } from "DmLib"
 import { settings } from "skyrimPlatform"
 
 const n = "wardrobe-malfunction"
@@ -8,6 +9,7 @@ export const logAnim = devOpt.logAnims as boolean
 //@ts-ignore
 const devUsr = settings[n]["config"].user
 export const restoreEquipC = devUsr.restoreEquipmentChance as number
+export const restoreEquipHk = Hotkeys.FromValue(devUsr.restoreEquipmentHk)
 
 /** Events configuration. */
 export const evt = settings[n]["events"] as SkimpyEvents
