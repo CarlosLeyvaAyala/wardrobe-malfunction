@@ -18,6 +18,7 @@ import {
   SkimpyEventRecoveryTime,
 } from "./config"
 import { playerId } from "./constants"
+import { LN } from "./debug"
 
 type FormArg = Form | null | undefined
 type FormToForm = (f: FormArg) => FormArg
@@ -102,7 +103,7 @@ function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
 
 export const Redress = () => {
   const m = "You hastily try to put on some clothes."
-  // d.None(m)
+  LN(m)
   Debug.notification(m)
   RestorePlayerEquipment(WithChance)
 }

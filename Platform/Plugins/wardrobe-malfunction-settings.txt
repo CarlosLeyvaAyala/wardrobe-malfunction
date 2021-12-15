@@ -2,10 +2,11 @@
   "config": {
     "user":{
       "restoreEquipmentChance": 0.5,
-      "restoreEquipmentHk": "Enter"
+      "restoreEquipmentHk": "Ctrl Enter" 
     },
     "developer":{
-      "logAnims": false
+      "logAnims": false,
+	  "hotkeys": false
     }
   },
   "events":{

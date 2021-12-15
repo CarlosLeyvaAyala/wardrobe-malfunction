@@ -8,8 +8,9 @@ import {
   WeaponType,
 } from "skyrimPlatform"
 import { HookAnims } from "./animations"
-import { evt, restoreEquipHk } from "./config"
+import { devHotkeys, evt, restoreEquipHk } from "./config"
 import { playerId } from "./constants"
+import { LN } from "./debug"
 import { Redress, TryRestore, TrySkimpify } from "./equipment"
 
 export function main() {
@@ -24,19 +25,23 @@ export function main() {
     HitByWeapon(e)
   })
 
-  const OnT = Hotkeys.ListenTo(DxScanCode.Backspace)
+  const OnT = Hotkeys.ListenToS(DxScanCode.Backspace, devHotkeys)
   const T = () => TrySkimpify(playerId, evt.powerAttacked.chance, true)
 
-  const OnT2 = Hotkeys.ListenTo(DxScanCode.RightControl)
+  const OnT2 = Hotkeys.ListenToS(DxScanCode.RightControl, devHotkeys)
   const T2 = () => TryRestore(playerId, evt.swim.recoveryTime)
 
-  const OnRedress = Hotkeys.ListenTo(restoreEquipHk.hk)
+  const OnRedress = Hotkeys.ListenTo(restoreEquipHk)
 
   on("update", () => {
     OnRedress(Redress)
     OnT(T)
     OnT2(T2)
   })
+
+  LN("Successful initialization")
+  LN(`Redress hotkey: ${Hotkeys.ToString(restoreEquipHk)}`)
+  LN(`Dev hotkeys: ${devHotkeys ? "ENABLED" : "DISABLED"}`)
 }
 
 function HitBySpell(e: HitEvent) {
