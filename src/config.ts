@@ -18,8 +18,12 @@ export interface SkimpyEvents {
   sneak: SkimpyEvent
   swim: SkimpyEvent
   sprint: SkimpyEvent
+  jump: SkimpyEvent
   attack: SkimpyEvent
   powerAttack: SkimpyEvent
+  fus: SkimpyEvent
+  fusRo: SkimpyEvent
+  fusRoDa: SkimpyEvent
   block: SkimpyEvent
   attacked: SkimpyEvent
   powerAttacked: SkimpyEvent

@@ -18,9 +18,11 @@ import {
   DxScanCode,
   Form,
   Game,
+  HitEvent,
   hooks,
   on,
   once,
+  printConsole,
   SendAnimationEventHook,
   Utility,
   Weapon,
@@ -40,50 +42,56 @@ const playerId = 0x14
 export function main() {
   LogAnimations(logAnim)
 
-  AddSkimpifyEvent("SneakStart", evt.sneak.chance)
+  AddSkimpifyEvent("SneakStart", evt.sneak.chance, false)
   AddSkimpifyEvent("SneakSprintStartRoll", evt.sneak.chance)
-  AddRestoreEvent("SneakStop", evt.sneak.recoveryTime)
+  AddRestoreEvent("SneakStop", evt.sneak.recoveryTime, false)
 
-  AddSkimpifyEvent("SwimStart", evt.swim.chance)
-  AddRestoreEvent("swimStop", evt.swim.recoveryTime)
+  AddSkimpifyEvent("SwimStart", evt.swim.chance, false)
+  AddRestoreEvent("swimStop", evt.swim.recoveryTime, false)
 
-  AddSkimpifyEvent("SprintStart", evt.sprint.chance)
-  AddRestoreEvent("SprintStop", evt.sprint.recoveryTime)
+  AddSkimpifyEvent("SprintStart", evt.sprint.chance, true)
+  AddRestoreEvent("SprintStop", evt.sprint.recoveryTime, true)
+
+  AddSkimpifyEvent("JumpStandingStart", evt.jump.chance, true)
+  AddSkimpifyEvent("JumpDirectionalStart", evt.jump.chance, true)
+  // AddRestoreEvent("JumpLand", evt.jump.recoveryTime, true)
+  // AddRestoreEvent("JumpLandDirectional", evt.jump.recoveryTime, true)
 
   // Combat related
-  AddSkimpifyEvent("attackStart", evt.attack.chance)
-  AddSkimpifyEvent("bowAttackStart", evt.attack.chance)
-  AddSkimpifyEvent("attackPowerStartInPlace", evt.powerAttack.chance)
-  AddSkimpifyEvent("attackPowerStartForward", evt.powerAttack.chance)
-  AddSkimpifyEvent("attackPowerStartBackward", evt.powerAttack.chance)
-  AddSkimpifyEvent("attackPowerStartRight", evt.powerAttack.chance)
-  AddSkimpifyEvent("attackPowerStartLeft", evt.powerAttack.chance)
+  AddSkimpifyEvent("attackStart", evt.attack.chance, true)
+  AddSkimpifyEvent("bowAttackStart", evt.attack.chance, true)
+  AddSkimpifyEvent("attackPowerStartInPlace", evt.powerAttack.chance, true)
+  AddSkimpifyEvent("attackPowerStartForward", evt.powerAttack.chance, true)
+  AddSkimpifyEvent("attackPowerStartBackward", evt.powerAttack.chance, true)
+  AddSkimpifyEvent("attackPowerStartRight", evt.powerAttack.chance, true)
+  AddSkimpifyEvent("attackPowerStartLeft", evt.powerAttack.chance, true)
 
-  AddSkimpifyEvent("bashStart", evt.block.chance)
+  AddSkimpifyEvent("bashStart", evt.block.chance, true)
 
   AddRestoreEvent("Unequip", evt.attack.recoveryTime) // Sheathe weapon
 
   // Peasants
+  AddSkimpifyEvent("IdleChairFrontEnter", evt.townspeople.chance, false)
+  AddSkimpifyEvent("ChairDrinkingStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleSharpeningWheelStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("idleChairShoulderFlex", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleExamine", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleCounterStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleBedLeftEnterStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleBedExitStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("idleLooseSweepingStart", evt.townspeople.chance, false)
   // IdleFeedChicken, IdleCarryBucketPourEnter
   AddRestoreEvent("IdleStop", evt.townspeople.recoveryTime, false)
   AddRestoreEvent("IdleStopInstant", evt.townspeople.recoveryTime, false)
 
   /** This event counts for any Actor in combat */
   on("hit", (e) => {
-    const w = Weapon.from(e.source)
-    if (!w) return
-    const t = w.getWeaponType()
-    if (t === WeaponType.Crossbow || t === WeaponType.Bow) return
-
-    if (Ammo.from(e.source)) return
-    const c = e.isHitBlocked
-      ? evt.block.chance
-      : e.isBashAttack || e.isPowerAttack
-      ? evt.powerAttacked.chance
-      : evt.attacked.chance
-    TrySkimpify(e.target.getFormID(), c, true)
+    // printConsole(
+    //   `+++ HIT: ${e.source.getName()} ${e.source.getFormID().toString(16)}`
+    // )
+    HitBySpell(e)
+    HitByWeapon(e)
   })
 
   // const OnT = Hotkeys.ListenTo(DxScanCode.Enter)
@@ -100,6 +108,38 @@ export function main() {
     // OnT(T)
     // OnT2(T2)
   })
+}
+
+function HitBySpell(e: HitEvent) {
+  const fus = 0x13e09
+  const fusRo = 0x13f39
+  const fusRoDa = 0x13f3a
+  const c =
+    e.source.getFormID() === fus
+      ? evt.fus.chance
+      : e.source.getFormID() === fusRo
+      ? evt.fusRo.chance
+      : e.source.getFormID() === fusRoDa
+      ? evt.fusRoDa.chance
+      : null
+  if (!c) return
+  // printConsole("fus ro da")
+  TrySkimpify(e.target.getFormID(), c, true)
+}
+
+function HitByWeapon(e: HitEvent) {
+  const w = Weapon.from(e.source)
+  if (!w) return
+  const t = w.getWeaponType()
+  if (t === WeaponType.Crossbow || t === WeaponType.Bow) return
+
+  if (Ammo.from(e.source)) return
+  const c = e.isHitBlocked
+    ? evt.block.chance
+    : e.isBashAttack || e.isPowerAttack
+    ? evt.powerAttacked.chance
+    : evt.attacked.chance
+  TrySkimpify(e.target.getFormID(), c, true)
 }
 
 function AddHook(name: string, f: (id: number) => void, playerOnly: boolean) {
@@ -282,6 +322,7 @@ function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
       act.isDead() ||
       act.isSprinting() ||
       act.isSneaking() ||
+      act.isFlying() ||
       act.isInCombat() ||
       act.isSwimming() ||
       act.isWeaponDrawn()
@@ -328,7 +369,10 @@ function LogAnimations(log: boolean) {
   if (!log) return
   const Ysolda = 0x1a69a
   const Sigrid = 0x13483
-  const t = Sigrid
+  const Vera = 0x3600dbf9
+  const Elisif = 0x198c1
+  const Carlotta = 0x1a675
+  const t = Carlotta
   const L = (c: SendAnimationEventHook.Context) =>
     writeLogs("animations", c.animEventName)
 
