@@ -1,6 +1,13 @@
-import { hooks, once, SendAnimationEventHook, writeLogs } from "skyrimPlatform"
+import {
+  Game,
+  hooks,
+  once,
+  SendAnimationEventHook,
+  writeLogs,
+} from "skyrimPlatform"
 import {
   evt,
+  logActor,
   logAnim,
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
@@ -49,16 +56,22 @@ function HookCombat() {
 }
 
 function HookPeasants() {
-  // IdleFeedChicken, IdleCarryBucketPourEnter
+  // IdleFeedChicken,
+  AddSkimpifyEvent("IdleAlchemyEnter", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleBedExitStart", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleBedLeftEnterStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleBlacksmithForgeEnter", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleCarryBucketPourEnter", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleChairFrontEnter", evt.townspeople.chance, false)
   AddSkimpifyEvent("idleChairShoulderFlex", evt.townspeople.chance, false)
   AddSkimpifyEvent("ChairDrinkingStart", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleCounterStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleEnchantingEnter", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleExamine", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleLeanTableEnter", evt.townspeople.chance, false)
   AddSkimpifyEvent("idleLooseSweepingStart", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleSharpeningWheelStart", evt.townspeople.chance, false)
+  AddSkimpifyEvent("IdleTanningEnter", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
 
   AddRestoreEvent("IdleStop", evt.townspeople.recoveryTime, false)
@@ -115,9 +128,9 @@ export function LogAnimations(log: boolean) {
   const Vera = 0x3600dbf9
   const Elisif = 0x198c1
   const Carlotta = 0x1a675
-  const t = Carlotta
+  const t = !logActor ? playerId : logActor
   const L = (c: SendAnimationEventHook.Context) =>
-    writeLogs("animations", c.animEventName)
+    writeLogs("animations", `0x${t.toString(16)}: ${c.animEventName}`)
 
   hooks.sendAnimationEvent.add(
     {

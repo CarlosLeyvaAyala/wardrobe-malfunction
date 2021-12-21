@@ -8,7 +8,7 @@ import {
   WeaponType,
 } from "skyrimPlatform"
 import { HookAnims } from "./animations"
-import { devHotkeys, evt, restoreEquipHk } from "./config"
+import { devHotkeys, evt, logAnim, restoreEquipHk } from "./config"
 import { playerId } from "./constants"
 import { LN } from "./debug"
 import { Redress, TryRestore, TrySkimpify } from "./equipment"
@@ -42,6 +42,7 @@ export function main() {
   LN("Successful initialization")
   LN(`Redress hotkey: ${Hotkeys.ToString(restoreEquipHk)}`)
   LN(`Dev hotkeys: ${devHotkeys ? "ENABLED" : "DISABLED"}`)
+  if (logAnim) LN("Animation loggin activated")
 }
 
 function HitBySpell(e: HitEvent) {

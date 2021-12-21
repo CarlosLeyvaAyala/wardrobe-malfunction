@@ -5,6 +5,7 @@ const n = "wardrobe-malfunction"
 //@ts-ignore
 const devOpt = settings[n]["config"].developer
 export const logAnim = devOpt.logAnims as boolean
+export const logActor = parseInt(devOpt.logActor)
 export const devHotkeys = devOpt.hotkeys as boolean
 
 //@ts-ignore
