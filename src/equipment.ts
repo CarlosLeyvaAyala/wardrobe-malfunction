@@ -2,6 +2,7 @@ import { Combinators, FormLib } from "DmLib"
 import * as JDB from "JContainers/JDB"
 import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
+import { ActorIsFollower } from "LibFire/LibFire"
 import {
   ChangeRel,
   GetChange,
@@ -11,7 +12,15 @@ import {
   HasSkimpy,
   SkimpyFunc,
 } from "skimpify-api"
-import { Actor, Armor, Debug, Form, Game, Utility } from "skyrimPlatform"
+import {
+  Actor,
+  Armor,
+  Debug,
+  Form,
+  Game,
+  ObjectLoadedEvent,
+  Utility,
+} from "skyrimPlatform"
 import {
   restoreEquipC,
   SkimpyEventChance,
@@ -200,3 +209,11 @@ export const Swap = (a: Actor, aO: Armor, aN: Armor) => {
 }
 
 export const GetChance = (x: number) => () => Math.random() <= x
+
+/** Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
+export function RedressNpc(e: ObjectLoadedEvent) {
+  if (e.isLoaded === true) return
+  const a = Actor.from(e.object)
+  if (!a || a.isDead() || ActorIsFollower(a)) return
+  a.resetInventory()
+}
