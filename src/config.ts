@@ -23,9 +23,20 @@ export const evt = settings[n]["events"] as SkimpyEvents
 
 /** Configuration for all events. */
 export interface SkimpyEvents {
-  townspeople: SkimpyEvent
+  townspeople: PeasantEvents
   explore: ExplorationEvents
-  combat: SkimpyEvents
+  combat: CombatEvents
+}
+
+export interface ExplorationEvents {
+  sneak: SkimpyEvent
+  swim: SkimpyEvent
+  sprint: SkimpyEvent
+  jump: SkimpyEvent
+}
+
+export interface CombatEvents {
+  recoveryTime: SkimpyEventRecoveryTime
   attack: SkimpyEvent
   powerAttack: SkimpyEvent
   fus: SkimpyEvent
@@ -36,19 +47,18 @@ export interface SkimpyEvents {
   powerAttacked: SkimpyEvent
 }
 
-export interface ExplorationEvents {
-  sneak: SkimpyEvent
-  swim: SkimpyEvent
-  sprint: SkimpyEvent
-  jump: SkimpyEvent
+export interface PeasantEvents {
+  recoveryTime: SkimpyEventRecoveryTime
+  bendOver: SkimpyEvent
+  liftLegs: SkimpyEvent
+  layDown: SkimpyEvent
 }
-
-export interface CombatEvents {}
 
 /** Configuration for one single event. */
 interface SkimpyEvent {
   chance: SkimpyEventChance
   recoveryTime: SkimpyEventRecoveryTime
+  playerOnly: boolean
 }
 
 /** Chance of changing armor on some event. */

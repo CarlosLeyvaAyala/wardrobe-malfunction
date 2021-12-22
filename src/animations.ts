@@ -14,7 +14,7 @@ import {
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
 } from "./config"
-import { playerId } from "./constants"
+import { displayName, playerId } from "./constants"
 import { RedressNpc, TryRestore, TrySkimpify } from "./equipment"
 
 export function HookAnims() {
@@ -25,18 +25,22 @@ export function HookAnims() {
 }
 
 function HookExploring() {
-  AddSkimpifyEvent("SneakStart", evt.explore.sneak.chance, false)
-  AddSkimpifyEvent("SneakSprintStartRoll", evt.explore.sneak.chance)
-  AddRestoreEvent("SneakStop", evt.explore.sneak.recoveryTime, false)
+  const sn = evt.explore.sneak
+  AddSkimpifyEvent("SneakStart", sn.chance, sn.playerOnly)
+  AddSkimpifyEvent("SneakSprintStartRoll", sn.chance, sn.playerOnly)
+  AddRestoreEvent("SneakStop", sn.recoveryTime, sn.playerOnly)
 
-  AddSkimpifyEvent("SwimStart", evt.explore.swim.chance, false)
-  AddRestoreEvent("swimStop", evt.explore.swim.recoveryTime, false)
+  const sw = evt.explore.swim
+  AddSkimpifyEvent("SwimStart", sw.chance, sw.playerOnly)
+  AddRestoreEvent("swimStop", sw.recoveryTime, sw.playerOnly)
 
-  AddSkimpifyEvent("SprintStart", evt.explore.sprint.chance, true)
-  AddRestoreEvent("SprintStop", evt.explore.sprint.recoveryTime, true)
+  const sp = evt.explore.sprint
+  AddSkimpifyEvent("SprintStart", sp.chance, sp.playerOnly)
+  AddRestoreEvent("SprintStop", sp.recoveryTime, sp.playerOnly)
 
-  AddSkimpifyEvent("JumpStandingStart", evt.explore.jump.chance, true)
-  AddSkimpifyEvent("JumpDirectionalStart", evt.explore.jump.chance, true)
+  const jm = evt.explore.jump
+  AddSkimpifyEvent("JumpStandingStart", jm.chance, jm.playerOnly)
+  AddSkimpifyEvent("JumpDirectionalStart", jm.chance, jm.playerOnly)
 
   // These were deactivated because they tended to break "muh immersion"
   // AddRestoreEvent("JumpLand", evt.jump.recoveryTime, true)
@@ -44,50 +48,46 @@ function HookExploring() {
 }
 
 function HookCombat() {
-  AddSkimpifyEvent("attackStart", evt.attack.chance, true)
-  AddSkimpifyEvent("bowAttackStart", evt.attack.chance, true)
-  AddSkimpifyEvent("attackPowerStartInPlace", evt.powerAttack.chance, true)
-  AddSkimpifyEvent("attackPowerStartForward", evt.powerAttack.chance, true)
-  AddSkimpifyEvent("attackPowerStartBackward", evt.powerAttack.chance, true)
-  AddSkimpifyEvent("attackPowerStartRight", evt.powerAttack.chance, true)
-  AddSkimpifyEvent("attackPowerStartLeft", evt.powerAttack.chance, true)
+  const at = evt.combat.attack.chance
+  const pa = evt.combat.powerAttack.chance
+  AddSkimpifyEvent("attackStart", at, true)
+  AddSkimpifyEvent("bowAttackStart", at, true)
+  AddSkimpifyEvent("attackPowerStartInPlace", pa, true)
+  AddSkimpifyEvent("attackPowerStartForward", pa, true)
+  AddSkimpifyEvent("attackPowerStartBackward", pa, true)
+  AddSkimpifyEvent("attackPowerStartRight", pa, true)
+  AddSkimpifyEvent("attackPowerStartLeft", pa, true)
 
-  AddSkimpifyEvent("bashStart", evt.block.chance, true)
+  AddSkimpifyEvent("bashStart", evt.combat.block.chance, true)
 
-  AddRestoreEvent("Unequip", evt.attack.recoveryTime) // Sheathe weapon
+  AddRestoreEvent("Unequip", evt.combat.recoveryTime) // Sheathe weapon
 }
 
 function HookPeasants() {
   // IdleFeedChicken,
-  AddSkimpifyEvent("IdleAlchemyEnter", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleBedExitStart", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleBedLeftEnterStart", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleBlacksmithForgeEnter", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleCarryBucketPourEnter", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleChairFrontEnter", evt.townspeople.chance, false)
-  AddSkimpifyEvent("idleChairShoulderFlex", evt.townspeople.chance, false)
-  AddSkimpifyEvent("ChairDrinkingStart", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleCounterStart", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleEnchantingEnter", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleExamine", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleLeanTableEnter", evt.townspeople.chance, false)
-  AddSkimpifyEvent("idleLooseSweepingStart", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleSharpeningWheelStart", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleTanningEnter", evt.townspeople.chance, false)
-  AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
+  const be = evt.townspeople.bendOver.chance
+  const ly = evt.townspeople.layDown.chance
+  const leg = evt.townspeople.liftLegs.chance
+  AddSkimpifyEvent("IdleAlchemyEnter", be, false)
+  AddSkimpifyEvent("IdleBedExitStart", be, false)
+  AddSkimpifyEvent("IdleBedLeftEnterStart", ly, false)
+  AddSkimpifyEvent("IdleBlacksmithForgeEnter", be, false)
+  AddSkimpifyEvent("IdleCarryBucketPourEnter", be, false)
+  AddSkimpifyEvent("IdleChairFrontEnter", leg, false)
+  AddSkimpifyEvent("idleChairShoulderFlex", be, false)
+  AddSkimpifyEvent("ChairDrinkingStart", be, false)
+  AddSkimpifyEvent("IdleCounterStart", be, false)
+  AddSkimpifyEvent("IdleEnchantingEnter", be, false)
+  AddSkimpifyEvent("IdleExamine", be, false)
+  AddSkimpifyEvent("IdleLeanTableEnter", be, false)
+  AddSkimpifyEvent("idleLooseSweepingStart", be, false)
+  AddSkimpifyEvent("IdleSharpeningWheelStart", be, false)
+  AddSkimpifyEvent("IdleTanningEnter", be, false)
+  // AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
 
-  AddRestoreEvent(
-    "IdleStop",
-    evt.townspeople.recoveryTime,
-    false,
-    redressNPC.enabled
-  )
-  AddRestoreEvent(
-    "IdleStopInstant",
-    evt.townspeople.recoveryTime,
-    false,
-    redressNPC.enabled
-  )
+  const rt = evt.townspeople.recoveryTime
+  AddRestoreEvent("IdleStop", rt, false, redressNPC.enabled)
+  AddRestoreEvent("IdleStopInstant", rt, false, redressNPC.enabled)
 }
 
 function AddHook(name: string, f: (id: number) => void, playerOnly: boolean) {
@@ -141,14 +141,12 @@ export function AddRestoreEvent(
 
 export function LogAnimations(log: boolean) {
   if (!log) return
-  const Ysolda = 0x1a69a
-  const Sigrid = 0x13483
-  const Vera = 0x3600dbf9
-  const Elisif = 0x198c1
-  const Carlotta = 0x1a675
   const t = !logActor ? playerId : logActor
   const L = (c: SendAnimationEventHook.Context) =>
-    writeLogs("animations", `0x${t.toString(16)}: ${c.animEventName}`)
+    writeLogs(
+      `${displayName} Animations`,
+      `0x${t.toString(16)}: ${c.animEventName}`
+    )
 
   hooks.sendAnimationEvent.add(
     {

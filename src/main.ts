@@ -34,7 +34,7 @@ export function main() {
   })
 
   const OnT = Hotkeys.ListenToS(DxScanCode.Backspace, devHotkeys)
-  const T = () => TrySkimpify(playerId, evt.powerAttacked.chance, true)
+  const T = () => TrySkimpify(playerId, evt.combat.powerAttacked.chance, true)
 
   const OnT2 = Hotkeys.ListenToS(DxScanCode.RightControl, devHotkeys)
   const T2 = () => TryRestore(playerId, evt.explore.swim.recoveryTime)
@@ -64,14 +64,13 @@ function HitBySpell(e: HitEvent) {
   const fusRoDa = 0x13f3a
   const c =
     e.source.getFormID() === fus
-      ? evt.fus.chance
+      ? evt.combat.fus.chance
       : e.source.getFormID() === fusRo
-      ? evt.fusRo.chance
+      ? evt.combat.fusRo.chance
       : e.source.getFormID() === fusRoDa
-      ? evt.fusRoDa.chance
+      ? evt.combat.fusRoDa.chance
       : null
   if (!c) return
-  // printConsole("fus ro da")
   TrySkimpify(e.target.getFormID(), c, true)
 }
 
@@ -83,9 +82,9 @@ function HitByWeapon(e: HitEvent) {
 
   if (Ammo.from(e.source)) return
   const c = e.isHitBlocked
-    ? evt.block.chance
+    ? evt.combat.block.chance
     : e.isBashAttack || e.isPowerAttack
-    ? evt.powerAttacked.chance
-    : evt.attacked.chance
+    ? evt.combat.powerAttacked.chance
+    : evt.combat.attacked.chance
   TrySkimpify(e.target.getFormID(), c, true)
 }

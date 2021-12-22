@@ -50,12 +50,14 @@ For the player, armors will be automatically reequipped again [as soon as possib
 ### Mundane actions
 
 Some everyday actions may trigger wardrobe malfunctions on NPCs.\
-Theoretically, they can work on the player too, if you use a mod that lets you do those kind of actions.
+They work on the player too, but some of them are only available for your Player Character if you use a mod that lets you use some of the animations that are listed below.
 
-- Browsing items at a stall.
-- Sitting at chairs.
 - Using crafting furniture in general (alchemy, enchanting, smithing stations).
-- Leaning on walls.
+- Sitting at chairs.
+- Browsing items at a stall.
+- Going to sleep.
+
+As you can see, aside of going to sleep, most of these require the `Actor` to bend over.
 
 ## Configurable
 
