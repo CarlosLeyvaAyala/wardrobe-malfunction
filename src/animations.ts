@@ -23,18 +23,18 @@ export function HookAnims() {
 }
 
 function HookExploring() {
-  AddSkimpifyEvent("SneakStart", evt.sneak.chance, false)
-  AddSkimpifyEvent("SneakSprintStartRoll", evt.sneak.chance)
-  AddRestoreEvent("SneakStop", evt.sneak.recoveryTime, false)
+  AddSkimpifyEvent("SneakStart", evt.explore.sneak.chance, false)
+  AddSkimpifyEvent("SneakSprintStartRoll", evt.explore.sneak.chance)
+  AddRestoreEvent("SneakStop", evt.explore.sneak.recoveryTime, false)
 
-  AddSkimpifyEvent("SwimStart", evt.swim.chance, false)
-  AddRestoreEvent("swimStop", evt.swim.recoveryTime, false)
+  AddSkimpifyEvent("SwimStart", evt.explore.swim.chance, false)
+  AddRestoreEvent("swimStop", evt.explore.swim.recoveryTime, false)
 
-  AddSkimpifyEvent("SprintStart", evt.sprint.chance, true)
-  AddRestoreEvent("SprintStop", evt.sprint.recoveryTime, true)
+  AddSkimpifyEvent("SprintStart", evt.explore.sprint.chance, true)
+  AddRestoreEvent("SprintStop", evt.explore.sprint.recoveryTime, true)
 
-  AddSkimpifyEvent("JumpStandingStart", evt.jump.chance, true)
-  AddSkimpifyEvent("JumpDirectionalStart", evt.jump.chance, true)
+  AddSkimpifyEvent("JumpStandingStart", evt.explore.jump.chance, true)
+  AddSkimpifyEvent("JumpDirectionalStart", evt.explore.jump.chance, true)
 
   // These were deactivated because they tended to break "muh immersion"
   // AddRestoreEvent("JumpLand", evt.jump.recoveryTime, true)

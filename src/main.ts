@@ -8,7 +8,7 @@ import {
   WeaponType,
 } from "skyrimPlatform"
 import { HookAnims } from "./animations"
-import { devHotkeys, evt, logAnim, restoreEquipHk } from "./config"
+import { devHotkeys, evt, logAnim, redressNPC, restoreEquipHk } from "./config"
 import { playerId } from "./constants"
 import { LN } from "./debug"
 import { Redress, RedressNpc, TryRestore, TrySkimpify } from "./equipment"
@@ -29,7 +29,7 @@ export function main() {
   const T = () => TrySkimpify(playerId, evt.powerAttacked.chance, true)
 
   const OnT2 = Hotkeys.ListenToS(DxScanCode.RightControl, devHotkeys)
-  const T2 = () => TryRestore(playerId, evt.swim.recoveryTime)
+  const T2 = () => TryRestore(playerId, evt.explore.swim.recoveryTime)
 
   const OnRedress = Hotkeys.ListenTo(restoreEquipHk)
 
@@ -39,7 +39,7 @@ export function main() {
     OnT2(T2)
   })
 
-  on("objectLoaded", RedressNpc)
+  if (redressNPC.enabled) on("objectLoaded", RedressNpc)
 
   LN("Successful initialization")
   LN(`Redress hotkey: ${Hotkeys.ToString(restoreEquipHk)}`)

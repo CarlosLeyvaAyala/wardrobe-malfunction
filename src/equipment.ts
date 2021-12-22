@@ -19,9 +19,12 @@ import {
   Form,
   Game,
   ObjectLoadedEvent,
+  Outfit,
+  printConsole,
   Utility,
 } from "skyrimPlatform"
 import {
+  redressNPC,
   restoreEquipC,
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
@@ -111,7 +114,9 @@ function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
 }
 
 export const Redress = () => {
-  const m = "You hastily try to put on some clothes."
+  const m = `You hastily ${
+    restoreEquipC >= 1 ? "try to put on some" : "put on all your"
+  } clothes.`
   LN(m)
   Debug.notification(m)
   RestorePlayerEquipment(WithChance)
@@ -214,6 +219,14 @@ export const GetChance = (x: number) => () => Math.random() <= x
 export function RedressNpc(e: ObjectLoadedEvent) {
   if (e.isLoaded === true) return
   const a = Actor.from(e.object)
-  if (!a || a.isDead() || ActorIsFollower(a)) return
-  a.resetInventory()
+  if (!a || a.isDead() || (ActorIsFollower(a) && !redressNPC.workOnFollowers))
+    return
+  // a.resetInventory()
+  const b = a.getLeveledActorBase()
+  if (!b) return
+  FormLib.ForEachOutfitItemR(b.getOutfit(false), (i) => {
+    if (a.isEquipped(i)) return
+    printConsole("Reequip ", i.getName())
+    a.equipItem(i, false, true)
+  })
 }

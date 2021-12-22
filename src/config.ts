@@ -2,6 +2,7 @@ import { Hotkeys } from "DmLib"
 import { settings } from "skyrimPlatform"
 
 const n = "wardrobe-malfunction"
+
 //@ts-ignore
 const devOpt = settings[n]["config"].developer
 export const logAnim = devOpt.logAnims as boolean
@@ -12,6 +13,7 @@ export const devHotkeys = devOpt.hotkeys as boolean
 const devUsr = settings[n]["config"].user
 export const restoreEquipC = devUsr.restoreEquipmentChance as number
 export const restoreEquipHk = Hotkeys.FromValue(devUsr.restoreEquipmentHk)
+export const redressNPC = devUsr.redressNPC as RedressNPC
 
 /** Events configuration. */
 export const evt = settings[n]["events"] as SkimpyEvents
@@ -19,10 +21,8 @@ export const evt = settings[n]["events"] as SkimpyEvents
 /** Configuration for all events. */
 export interface SkimpyEvents {
   townspeople: SkimpyEvent
-  sneak: SkimpyEvent
-  swim: SkimpyEvent
-  sprint: SkimpyEvent
-  jump: SkimpyEvent
+  explore: ExplorationEvents
+  combat: SkimpyEvents
   attack: SkimpyEvent
   powerAttack: SkimpyEvent
   fus: SkimpyEvent
@@ -32,6 +32,15 @@ export interface SkimpyEvents {
   attacked: SkimpyEvent
   powerAttacked: SkimpyEvent
 }
+
+export interface ExplorationEvents {
+  sneak: SkimpyEvent
+  swim: SkimpyEvent
+  sprint: SkimpyEvent
+  jump: SkimpyEvent
+}
+
+export interface CombatEvents {}
 
 /** Configuration for one single event. */
 interface SkimpyEvent {
@@ -51,4 +60,14 @@ export interface SkimpyEventChance {
 export interface SkimpyEventRecoveryTime {
   min: number | undefined
   max: number | undefined
+}
+
+/** Will the mod try to redress NPCs to avoid them to be naked due to Outfit differences? */
+export interface RedressNPC {
+  /** Enable the option to redress? If not enabled, player may need to periodically restore
+   * NPC armors with the `Resetinventory` console command.
+   */
+  enabled: boolean
+  /** Apply redressing on followers as well? */
+  workOnFollowers: boolean
 }
