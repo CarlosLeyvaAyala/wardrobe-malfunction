@@ -114,7 +114,7 @@ function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
 
 export const Redress = () => {
   const m = `You hastily ${
-    restoreEquipC >= 1 ? "try to put on some" : "put on all your"
+    restoreEquipC < 1 ? "try to put on some" : "put on all your"
   } clothes.`
   LN(m)
   Debug.notification(m)
