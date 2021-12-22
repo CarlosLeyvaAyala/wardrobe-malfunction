@@ -216,14 +216,18 @@ export const Swap = (a: Actor, aO: Armor, aN: Armor) => {
 export const GetChance = (x: number) => () => Math.random() <= x
 
 /** Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
-export function RedressNpc(e: ObjectLoadedEvent) {
+export function RedressNpcEvt(e: ObjectLoadedEvent) {
   if (e.isLoaded === true) return
-  const a = Actor.from(e.object)
+  RedressNpc(Actor.from(e.object))
+}
+
+export function RedressNpc(a: Actor | null) {
   if (!a || a.isDead() || (ActorIsFollower(a) && !redressNPC.workOnFollowers))
     return
-  // a.resetInventory()
+
   const b = a.getLeveledActorBase()
   if (!b) return
+
   FormLib.ForEachOutfitItemR(b.getOutfit(false), (i) => {
     if (a.isEquipped(i)) return
     printConsole("Reequip ", i.getName())

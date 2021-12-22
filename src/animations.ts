@@ -1,4 +1,5 @@
 import {
+  Actor,
   Game,
   hooks,
   once,
@@ -9,11 +10,12 @@ import {
   evt,
   logActor,
   logAnim,
+  redressNPC,
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
 } from "./config"
 import { playerId } from "./constants"
-import { TryRestore, TrySkimpify } from "./equipment"
+import { RedressNpc, TryRestore, TrySkimpify } from "./equipment"
 
 export function HookAnims() {
   LogAnimations(logAnim)
@@ -74,8 +76,18 @@ function HookPeasants() {
   AddSkimpifyEvent("IdleTanningEnter", evt.townspeople.chance, false)
   AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
 
-  AddRestoreEvent("IdleStop", evt.townspeople.recoveryTime, false)
-  AddRestoreEvent("IdleStopInstant", evt.townspeople.recoveryTime, false)
+  AddRestoreEvent(
+    "IdleStop",
+    evt.townspeople.recoveryTime,
+    false,
+    redressNPC.enabled
+  )
+  AddRestoreEvent(
+    "IdleStopInstant",
+    evt.townspeople.recoveryTime,
+    false,
+    redressNPC.enabled
+  )
 }
 
 function AddHook(name: string, f: (id: number) => void, playerOnly: boolean) {
@@ -116,9 +128,15 @@ export function AddSkimpifyEvent(
 export function AddRestoreEvent(
   name: string,
   time: SkimpyEventRecoveryTime,
-  playerOnly: boolean = true
+  playerOnly: boolean = true,
+  forceNpcs: boolean = false
 ) {
-  AddHook(name, (selfId) => TryRestore(selfId, time), playerOnly)
+  const F = (selfId: number) => {
+    TryRestore(selfId, time)
+    if (forceNpcs && selfId !== playerId)
+      RedressNpc(Actor.from(Game.getFormEx(selfId)))
+  }
+  AddHook(name, F, playerOnly)
 }
 
 export function LogAnimations(log: boolean) {
