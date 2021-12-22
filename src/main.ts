@@ -1,4 +1,4 @@
-import { Hotkeys } from "DmLib"
+import { DebugLib, Hotkeys } from "DmLib"
 import {
   Ammo,
   DxScanCode,
@@ -8,7 +8,15 @@ import {
   WeaponType,
 } from "skyrimPlatform"
 import { HookAnims } from "./animations"
-import { devHotkeys, evt, logAnim, restoreEquipHk } from "./config"
+import {
+  devHotkeys,
+  evt,
+  logAnim,
+  logLvl,
+  logToConsole,
+  logToFile,
+  restoreEquipHk,
+} from "./config"
 import { playerId } from "./constants"
 import { LN } from "./debug"
 import { Redress, TryRestore, TrySkimpify } from "./equipment"
@@ -39,9 +47,14 @@ export function main() {
     OnT2(T2)
   })
 
+  const B = (v: boolean) => (v ? "ENABLED" : "DISABLED")
   LN("Successful initialization")
   LN(`Redress hotkey: ${Hotkeys.ToString(restoreEquipHk)}`)
-  LN(`Dev hotkeys: ${devHotkeys ? "ENABLED" : "DISABLED"}`)
+  LN(`Dev hotkeys: ${B(devHotkeys)}`)
+  LN(`Logging level: ${DebugLib.Log.Level[logLvl]}`)
+  LN(`Log to console: ${B(logToConsole)}`)
+  LN(`Log to file: ${B(logToFile)}`)
+
   if (logAnim) LN("Animation loggin activated")
 }
 

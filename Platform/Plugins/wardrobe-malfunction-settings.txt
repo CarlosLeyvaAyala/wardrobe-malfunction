@@ -6,6 +6,11 @@
       "redressNPC": {
         "enabled": true,
         "workOnFollowers": false
+      },
+      "log": {
+        "level": "info", 
+        "toConsole": true,
+        "toFile": true
       }
     },
     "developer":{

@@ -1,4 +1,4 @@
-import { Hotkeys } from "DmLib"
+import { DebugLib, Hotkeys } from "DmLib"
 import { settings } from "skyrimPlatform"
 
 const n = "wardrobe-malfunction"
@@ -14,6 +14,9 @@ const devUsr = settings[n]["config"].user
 export const restoreEquipC = devUsr.restoreEquipmentChance as number
 export const restoreEquipHk = Hotkeys.FromValue(devUsr.restoreEquipmentHk)
 export const redressNPC = devUsr.redressNPC as RedressNPC
+export const logLvl = DebugLib.Log.LevelFromValue(devUsr.log.level)
+export const logToConsole = devUsr.log.toConsole as boolean
+export const logToFile = devUsr.log.toFile as boolean
 
 /** Events configuration. */
 export const evt = settings[n]["events"] as SkimpyEvents

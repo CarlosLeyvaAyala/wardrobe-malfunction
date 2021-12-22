@@ -1,4 +1,4 @@
-import { Combinators, FormLib } from "DmLib"
+import { Combinators, DebugLib, FormLib } from "DmLib"
 import * as JDB from "JContainers/JDB"
 import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
@@ -10,6 +10,7 @@ import {
   GetModestData,
   GetSlip,
   HasSkimpy,
+  IsNotRegistered,
   SkimpyFunc,
 } from "skimpify-api"
 import {
@@ -19,8 +20,6 @@ import {
   Form,
   Game,
   ObjectLoadedEvent,
-  Outfit,
-  printConsole,
   Utility,
 } from "skyrimPlatform"
 import {
@@ -30,7 +29,7 @@ import {
   SkimpyEventRecoveryTime,
 } from "./config"
 import { playerId } from "./constants"
-import { LN } from "./debug"
+import { LI, LN } from "./debug"
 
 type FormArg = Form | null | undefined
 type FormToForm = (f: FormArg) => FormArg
@@ -215,12 +214,12 @@ export const Swap = (a: Actor, aO: Armor, aN: Armor) => {
 
 export const GetChance = (x: number) => () => Math.random() <= x
 
-/** Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
 export function RedressNpcEvt(e: ObjectLoadedEvent) {
   if (e.isLoaded === true) return
   RedressNpc(Actor.from(e.object))
 }
 
+/** Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
 export function RedressNpc(a: Actor | null) {
   if (!a || a.isDead() || (ActorIsFollower(a) && !redressNPC.workOnFollowers))
     return
@@ -228,9 +227,14 @@ export function RedressNpc(a: Actor | null) {
   const b = a.getLeveledActorBase()
   if (!b) return
 
+  // Restore unequipped armors that are registered in the framework
   FormLib.ForEachOutfitItemR(b.getOutfit(false), (i) => {
-    if (a.isEquipped(i)) return
-    printConsole("Reequip ", i.getName())
+    if (a.isEquipped(i) || IsNotRegistered(Armor.from(i))) return
     a.equipItem(i, false, true)
+    LI(
+      `Fixing badly outfitted NPC: ${b.getName()} (${DebugLib.Log.IntToHex(
+        a.getFormID()
+      )}). Armor: ${i.getName()}.`
+    )
   })
 }
