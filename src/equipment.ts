@@ -23,6 +23,7 @@ import {
   Utility,
 } from "skyrimPlatform"
 import {
+  malfunctionMsg,
   redressNPC,
   restoreEquipC,
   SkimpyEventChance,
@@ -34,6 +35,24 @@ import { LI, LN } from "./debug"
 type FormArg = Form | null | undefined
 type FormToForm = (f: FormArg) => FormArg
 
+/** Creates a malfunction message to let the player know a malfunction happened. */
+function MalfunctionMsg(ac: Actor, msg: string, enable: boolean) {
+  return !enable
+    ? (a: Armor) => {}
+    : (a: Armor) => {
+        const n = a.getName()
+        if (!n) return
+        const m = `${ac.getLeveledActorBase()?.getName()}'s ${n} ${msg}!`
+        Debug.notification(m)
+      }
+}
+
+/** Tries to change all armors to skimpy versions based on a chance.
+ *
+ * @param actorId Actor to change equipment for.
+ * @param c Chances to skimpify armors.
+ * @param canUnequip Is it possible to unequip armors?
+ */
 export function TrySkimpify(
   actorId: number,
   c: SkimpyEventChance,
@@ -42,12 +61,14 @@ export function TrySkimpify(
   const ac = Actor.from(Game.getFormEx(actorId))
   if (!ac) return
 
+  type M = (v: Armor) => void
+
   let { skimpable, unequipable } = canUnequip
     ? DivideByType(ac)
     : GetSkimpable(ac)
 
   /** Marks a change of armors if a chance is met. */
-  const C = (chance: number | undefined, Skimpify: SkimpyFunc) => {
+  const C = (chance: number | undefined, Skimpify: SkimpyFunc, MsgF: M) => {
     if (chance === undefined || chance <= 0) return []
 
     const CanChange = GetChance(chance)
@@ -59,6 +80,7 @@ export function TrySkimpify(
         const na = Skimpify(v)
         if (!na) return true
 
+        MsgF(v)
         r.push({ from: v, to: na })
         return false // Avoid selected armor from being changed by other functions.
       }
@@ -67,9 +89,12 @@ export function TrySkimpify(
     return r
   }
 
-  const slips = C(c.slip, GetSlip)
-  const changes = C(c.change, GetChange)
-  const damages = C(c.damage, GetDamage)
+  const ss = MalfunctionMsg(ac, "slipped", malfunctionMsg.slip)
+  const ch = MalfunctionMsg(ac, "lost a piece", malfunctionMsg.change)
+  const dm = MalfunctionMsg(ac, "got DAMAGED", malfunctionMsg.damage)
+  const slips = C(c.slip, GetSlip, ss)
+  const changes = C(c.change, GetChange, ch)
+  const damages = C(c.damage, GetDamage, dm)
 
   slips.forEach((v) => Swap(ac, v.from, v.to))
   changes.forEach((v) => Swap(ac, v.from, v.to))
@@ -85,10 +110,12 @@ function TryUnequip(ac: Actor, s: Armor[], u: Armor[], c: number | undefined) {
   const Try = GetChance(c)
   const e = s.concat(u)
   const S = ac.getFormID() === playerId ? SavePlayerEquipment : () => {}
+  const M = MalfunctionMsg(ac, "was unequipped", malfunctionMsg.unequip)
 
   e.forEach((a) => {
     if (!Try()) return
     ac.unequipItem(a, false, true)
+    M(a)
     S(a)
   })
 }

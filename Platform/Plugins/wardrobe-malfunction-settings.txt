@@ -7,6 +7,12 @@
         "enabled": true,
         "workOnFollowers": false
       },
+      "messages": {
+        "slip": true,
+        "change": true,
+        "damage": true,
+        "unequip": true
+      },
       "log": {
         "level": "info",
         "toConsole": true,

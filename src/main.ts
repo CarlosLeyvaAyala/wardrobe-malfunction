@@ -15,6 +15,7 @@ import {
   logLvl,
   logToConsole,
   logToFile,
+  malfunctionMsg,
   restoreEquipHk,
 } from "./config"
 import { playerId } from "./constants"
@@ -50,6 +51,10 @@ export function main() {
   const B = (v: boolean) => (v ? "ENABLED" : "DISABLED")
   LN("Successful initialization")
   LN(`Redress hotkey: ${Hotkeys.ToString(restoreEquipHk)}`)
+  LN(`Notify slips: ${B(malfunctionMsg.slip)}`)
+  LN(`Notify changes: ${B(malfunctionMsg.change)}`)
+  LN(`Notify damages: ${B(malfunctionMsg.damage)}`)
+  LN(`Notify unequip: ${B(malfunctionMsg.unequip)}`)
   LN(`Dev hotkeys: ${B(devHotkeys)}`)
   LN(`Logging level: ${DebugLib.Log.Level[logLvl]}`)
   LN(`Log to console: ${B(logToConsole)}`)

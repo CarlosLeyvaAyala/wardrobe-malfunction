@@ -17,6 +17,7 @@ export const redressNPC = devUsr.redressNPC as RedressNPC
 export const logLvl = DebugLib.Log.LevelFromValue(devUsr.log.level)
 export const logToConsole = devUsr.log.toConsole as boolean
 export const logToFile = devUsr.log.toFile as boolean
+export const malfunctionMsg = devUsr.messages as MalfunctionMessages
 
 /** Events configuration. */
 export const evt = settings[n]["events"] as SkimpyEvents
@@ -83,4 +84,11 @@ export interface RedressNPC {
   enabled: boolean
   /** Apply redressing on followers as well? */
   workOnFollowers: boolean
+}
+
+export interface MalfunctionMessages {
+  slip: boolean
+  change: boolean
+  damage: boolean
+  unequip: boolean
 }
