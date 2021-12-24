@@ -43,7 +43,7 @@ function MalfunctionMsg(ac: Actor, msg: string, enable: boolean) {
         const n = a.getName()
         if (!n) return
         const m = `${ac.getLeveledActorBase()?.getName()}'s ${n} ${msg}!`
-        Debug.notification(m)
+        if (malfunctionMsg.notifyThem) Debug.notification(m)
         if (malfunctionMsg.logThem) LI(m)
       }
 }

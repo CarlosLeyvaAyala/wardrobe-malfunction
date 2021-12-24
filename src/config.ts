@@ -88,6 +88,7 @@ export interface RedressNPC {
 
 export interface MalfunctionMessages {
   logThem: boolean
+  notifyThem: boolean
   slip: boolean
   change: boolean
   damage: boolean

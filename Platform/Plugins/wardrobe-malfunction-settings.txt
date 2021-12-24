@@ -8,6 +8,8 @@
         "workOnFollowers": false
       },
       "messages": {
+        "notifyThem": true,
+        "logThem": true,
         "slip": true,
         "change": true,
         "damage": true,
@@ -16,7 +18,7 @@
       "log": {
         "level": "info",
         "toConsole": true,
-        "toFile": true
+        "toFile": false
       }
     },
     "developer":{
