@@ -16,11 +16,12 @@ import {
   logToConsole,
   logToFile,
   malfunctionMsg,
+  redressNPC,
   restoreEquipHk,
 } from "./config"
 import { playerId } from "./constants"
 import { LN } from "./debug"
-import { Redress, TryRestore, TrySkimpify } from "./equipment"
+import { Redress, RedressNpcEvt, TryRestore, TrySkimpify } from "./equipment"
 
 export function main() {
   HookAnims()
@@ -47,6 +48,8 @@ export function main() {
     OnT(T)
     OnT2(T2)
   })
+
+  if (redressNPC.enabled) on("objectLoaded", RedressNpcEvt)
 
   const B = (v: boolean) => (v ? "ENABLED" : "DISABLED")
   LN("Successful initialization")
