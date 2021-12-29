@@ -2,6 +2,7 @@ import { Combinators, DebugLib, FormLib } from "DmLib"
 import * as JDB from "JContainers/JDB"
 import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
+import { evalLuaObj } from "JContainers/JValue"
 import { ActorIsFollower } from "LibFire/LibFire"
 import {
   ChangeRel,
@@ -20,6 +21,7 @@ import {
   Form,
   Game,
   ObjectLoadedEvent,
+  printConsole,
   Utility,
 } from "skyrimPlatform"
 import {
@@ -106,6 +108,14 @@ export function TrySkimpify(
   TryUnequip(ac, skimpable, unequipable, c.unequip)
 }
 
+/** Unequips armors from an `Actor` with some chance.
+ *
+ * @param ac Un
+ * @param s List of armors that can be skimpified.
+ * @param u List of armors that can be unequipped.
+ * @param c Chance to unequip armors.
+ * @returns
+ */
 function TryUnequip(ac: Actor, s: Armor[], u: Armor[], c: number | undefined) {
   if (!c || c <= 0) return
   const Try = GetChance(c)
@@ -128,25 +138,43 @@ function SavePlayerEquipment(a: Armor) {
   JDB.solveFormSetter(k, a, true)
 }
 
+/** Restores player armor that was unequipped by this mod. */
 function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
   const p = Game.getPlayer() as Actor
+  const oo = JDB.solveObj(playerEqK)
 
-  JMapL.ForAllKeys(JDB.solveObj(playerEqK), (k, o) => {
+  JMapL.ForAllKeys(oo, (k, o) => {
     const a = f(JMap.getForm(o, k))
     if (!a) return
     p.equipItem(a, false, true)
     // Delete item from saved forms
     JMap.setForm(o, k, null)
   })
+
+  ClearRestoredArmors(oo)
+}
+
+/** Deletes from JDB all armors that were already restored.
+ *
+ * @param o JMap handle.
+ */
+function ClearRestoredArmors(o: number) {
+  const c = JMapL.FilterForms(o, (frm) => frm !== null && frm !== undefined)
+  JMap.clear(o)
+  JMap.addPairs(o, c, true)
 }
 
 export const Redress = () => {
-  const m = `You hastily ${
-    restoreEquipC < 1 ? "try to put on some" : "put on all your"
-  } clothes.`
+  const c = JMap.count(JDB.solveObj(playerEqK))
+  const m =
+    c === 0
+      ? "You just realized you already have equipped all clothes you lost during battle."
+      : `You hastily ${
+          restoreEquipC < 1 ? "try to put on some" : "put on all your"
+        } clothes.`
+  if (c > 0) RestorePlayerEquipment(WithChance)
   LN(m)
   Debug.notification(m)
-  RestorePlayerEquipment(WithChance)
 }
 
 const WithChance = (f: FormArg) => (GetChance(restoreEquipC)() ? f : null)

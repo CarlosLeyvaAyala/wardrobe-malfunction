@@ -83,6 +83,8 @@ function HookPeasants() {
   AddSkimpifyEvent("idleLooseSweepingStart", be, false)
   AddSkimpifyEvent("IdleSharpeningWheelStart", be, false)
   AddSkimpifyEvent("IdleTanningEnter", be, false)
+  AddSkimpifyEvent("IdleTelvanniTowerFloatUp", leg, false)
+  AddSkimpifyEvent("IdleTelvanniTowerFloatDown", leg, false)
   // AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
 
   const rt = evt.townspeople.recoveryTime
