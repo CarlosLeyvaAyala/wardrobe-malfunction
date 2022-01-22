@@ -1,17 +1,11 @@
 import { DebugLib, Hotkeys } from "DmLib"
-import {
-  Ammo,
-  DxScanCode,
-  HitEvent,
-  on,
-  Weapon,
-  WeaponType,
-} from "skyrimPlatform"
+import { DxScanCode, on } from "skyrimPlatform"
 import { HookAnims } from "./animations"
 import {
   devHotkeys,
   evt,
   logAnim,
+  logHits,
   logLvl,
   logToConsole,
   logToFile,
@@ -22,17 +16,16 @@ import {
 import { playerId } from "./constants"
 import { LN } from "./debug"
 import { Redress, RedressNpcEvt, TryRestore, TrySkimpify } from "./equipment"
+import { LogHit, HitBySpell, HitByWeapon } from "./hits"
 
 export function main() {
   HookAnims()
+  const LH = logHits ? LogHit : () => {}
 
   /** This event counts for any Actor in combat */
   on("hit", (e) => {
-    // printConsole(
-    //   `+++ HIT: ${e.source.getName()} ${e.source.getFormID().toString(16)}`
-    // )
-    HitBySpell(e)
-    HitByWeapon(e)
+    LH(e)
+    if (!HitBySpell(e)) HitByWeapon(e)
   })
 
   const OnT = Hotkeys.ListenToS(DxScanCode.Backspace, devHotkeys)
@@ -62,37 +55,7 @@ export function main() {
   LN(`Logging level: ${DebugLib.Log.Level[logLvl]}`)
   LN(`Log to console: ${B(logToConsole)}`)
   LN(`Log to file: ${B(logToFile)}`)
+  LN(`Log hits: ${B(logHits)}`)
 
   if (logAnim) LN("Animation loggin activated")
-}
-
-function HitBySpell(e: HitEvent) {
-  const fus = 0x13e09
-  const fusRo = 0x13f39
-  const fusRoDa = 0x13f3a
-  const c =
-    e.source.getFormID() === fus
-      ? evt.combat.fus.chance
-      : e.source.getFormID() === fusRo
-      ? evt.combat.fusRo.chance
-      : e.source.getFormID() === fusRoDa
-      ? evt.combat.fusRoDa.chance
-      : null
-  if (!c) return
-  TrySkimpify(e.target.getFormID(), c, true)
-}
-
-function HitByWeapon(e: HitEvent) {
-  const w = Weapon.from(e.source)
-  if (!w) return
-  const t = w.getWeaponType()
-  if (t === WeaponType.Crossbow || t === WeaponType.Bow) return
-
-  if (Ammo.from(e.source)) return
-  const c = e.isHitBlocked
-    ? evt.combat.block.chance
-    : e.isBashAttack || e.isPowerAttack
-    ? evt.combat.powerAttacked.chance
-    : evt.combat.attacked.chance
-  TrySkimpify(e.target.getFormID(), c, true)
 }

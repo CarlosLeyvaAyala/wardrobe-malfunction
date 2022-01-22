@@ -14,7 +14,7 @@ import {
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
 } from "./config"
-import { displayName, playerId } from "./constants"
+import { devLogName, displayName, playerId } from "./constants"
 import { RedressNpc, TryRestore, TrySkimpify } from "./equipment"
 
 export function HookAnims() {
@@ -85,11 +85,13 @@ function HookPeasants() {
   AddSkimpifyEvent("IdleTanningEnter", be, false)
   AddSkimpifyEvent("IdleTelvanniTowerFloatUp", leg, false)
   AddSkimpifyEvent("IdleTelvanniTowerFloatDown", leg, false)
+  AddSkimpifyEvent("HorseEnter", leg, false)
   // AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
 
   const rt = evt.townspeople.recoveryTime
   AddRestoreEvent("IdleStop", rt, false, redressNPC.enabled)
   AddRestoreEvent("IdleStopInstant", rt, false, redressNPC.enabled)
+  AddRestoreEvent("HorseExit", rt, false, redressNPC.enabled)
 }
 
 function AddHook(name: string, f: (id: number) => void, playerOnly: boolean) {
@@ -145,10 +147,7 @@ export function LogAnimations(log: boolean) {
   if (!log) return
   const t = !logActor ? playerId : logActor
   const L = (c: SendAnimationEventHook.Context) =>
-    writeLogs(
-      `${displayName} Animations`,
-      `0x${t.toString(16)}: ${c.animEventName}`
-    )
+    writeLogs(devLogName, `Anim on 0x${t.toString(16)}: ${c.animEventName}`)
 
   hooks.sendAnimationEvent.add(
     {

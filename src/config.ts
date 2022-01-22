@@ -8,6 +8,7 @@ const devOpt = settings[n]["config"].developer
 export const logAnim = devOpt.logAnims as boolean
 export const logActor = parseInt(devOpt.logActor)
 export const devHotkeys = devOpt.hotkeys as boolean
+export const logHits = devOpt.logHits as boolean
 
 //@ts-ignore
 const devUsr = settings[n]["config"].user
