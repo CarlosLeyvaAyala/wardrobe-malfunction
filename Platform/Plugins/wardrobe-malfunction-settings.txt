@@ -16,14 +16,15 @@
         "unequip": true
       },
       "log": {
-        "level": "info",
+        "level": "verbose",
         "toConsole": true,
-        "toFile": false
+        "toFile": true
       }
     },
     "developer":{
       "logAnims": false,
-      "logActor": "0xa2c94",
+      "logActor": "",
+      "logHits": false,
       "hotkeys": false
     }
   },
