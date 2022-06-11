@@ -2,7 +2,6 @@ import { Combinators, DebugLib, FormLib } from "DmLib"
 import * as JDB from "JContainers/JDB"
 import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
-import { evalLuaObj } from "JContainers/JValue"
 import { ActorIsFollower } from "LibFire/LibFire"
 import {
   ChangeRel,
@@ -21,7 +20,6 @@ import {
   Form,
   Game,
   ObjectLoadedEvent,
-  printConsole,
   Utility,
 } from "skyrimPlatform"
 import {

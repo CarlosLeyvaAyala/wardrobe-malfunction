@@ -9,14 +9,14 @@
       },
       "messages": {
         "notifyThem": true,
-        "logThem": true,
+        "logThem": false,
         "slip": true,
         "change": true,
         "damage": true,
         "unequip": true
       },
       "log": {
-        "level": "verbose",
+        "level": "error",
         "toConsole": true,
         "toFile": true
       }

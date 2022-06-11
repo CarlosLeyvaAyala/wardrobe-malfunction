@@ -10,5 +10,6 @@ const d = DebugLib.Log.CreateAll(
 )
 
 export const LN = d.None
+export const LE = d.Error
 export const LV = d.Verbose
 export const LI = d.Info

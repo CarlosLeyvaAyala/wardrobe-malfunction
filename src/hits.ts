@@ -1,6 +1,7 @@
 import { Ammo, HitEvent, Weapon, WeaponType, writeLogs } from "skyrimPlatform"
 import { evt } from "./config"
 import { devLogName } from "./constants"
+import { LE } from "./debug"
 import { TrySkimpify } from "./equipment"
 
 export function LogHit(e: HitEvent) {
@@ -15,34 +16,43 @@ export function LogHit(e: HitEvent) {
 }
 
 export function HitByWeapon(e: HitEvent) {
-  const w = Weapon.from(e.source)
-  if (!w) return
-  const t = w.getWeaponType()
-  if (t === WeaponType.Crossbow || t === WeaponType.Bow) return
+  try {
+    const w = Weapon.from(e.source)
+    if (!w) return
+    const t = w.getWeaponType()
+    if (t === WeaponType.Crossbow || t === WeaponType.Bow) return
 
-  if (Ammo.from(e.source)) return
-  const c = e.isHitBlocked
-    ? evt.combat.block.chance
-    : e.isBashAttack || e.isPowerAttack
-    ? evt.combat.powerAttacked.chance
-    : evt.combat.attacked.chance
-  TrySkimpify(e.target.getFormID(), c, true)
+    if (Ammo.from(e.source)) return
+    const c = e.isHitBlocked
+      ? evt.combat.block.chance
+      : e.isBashAttack || e.isPowerAttack
+      ? evt.combat.powerAttacked.chance
+      : evt.combat.attacked.chance
+    TrySkimpify(e.target.getFormID(), c, true)
+  } catch (error) {
+    LE(`Error on hit: ${error}`)
+  }
 }
 
 export function HitBySpell(e: HitEvent) {
   if (!e.source) return false
 
-  const id = e.source.getFormID()
-  const c = IsShoutL1(id)
-    ? evt.combat.fus.chance
-    : IsShoutL2(id)
-    ? evt.combat.fusRo.chance
-    : IsShoutL3(id)
-    ? evt.combat.fusRoDa.chance
-    : null
-  if (!c) return false
-  TrySkimpify(e.target.getFormID(), c, true)
-  return true
+  try {
+    const id = e.source.getFormID()
+    const c = IsShoutL1(id)
+      ? evt.combat.fus.chance
+      : IsShoutL2(id)
+      ? evt.combat.fusRo.chance
+      : IsShoutL3(id)
+      ? evt.combat.fusRoDa.chance
+      : null
+    if (!c) return false
+    TrySkimpify(e.target.getFormID(), c, true)
+    return true
+  } catch (error) {
+    LE(`Error on hit: ${error}`)
+    return false
+  }
 }
 
 const fus = 0x13e09
