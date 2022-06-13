@@ -9,7 +9,7 @@
       },
       "messages": {
         "notifyThem": true,
-        "logThem": false,
+        "logThem": true,
         "slip": true,
         "change": true,
         "damage": true,
@@ -18,12 +18,12 @@
       "log": {
         "level": "error",
         "toConsole": true,
-        "toFile": true
+        "toFile": false
       }
     },
     "developer":{
       "logAnims": false,
-      "logActor": "",
+      "logActor": "0x14",
       "logHits": false,
       "hotkeys": false
     }
