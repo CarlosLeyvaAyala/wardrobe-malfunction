@@ -1,3 +1,4 @@
+import { AnimLib as A } from "DmLib"
 import {
   Actor,
   Game,
@@ -14,7 +15,7 @@ import {
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
 } from "./config"
-import { devLogName, displayName, playerId } from "./constants"
+import { devLogName, playerId } from "./constants"
 import { RedressNpc, TryRestore, TrySkimpify } from "./equipment"
 
 export function HookAnims() {
@@ -26,21 +27,21 @@ export function HookAnims() {
 
 function HookExploring() {
   const sn = evt.explore.sneak
-  AddSkimpifyEvent("SneakStart", sn.chance, sn.playerOnly)
-  AddSkimpifyEvent("SneakSprintStartRoll", sn.chance, sn.playerOnly)
-  AddRestoreEvent("SneakStop", sn.recoveryTime, sn.playerOnly)
+  AddSkimpifyEvent(A.Animations.SneakStart, sn.chance, sn.playerOnly)
+  AddSkimpifyEvent(A.Animations.SneakSprintStartRoll, sn.chance, sn.playerOnly)
+  AddRestoreEvent(A.Animations.SneakStop, sn.recoveryTime, sn.playerOnly)
 
   const sw = evt.explore.swim
-  AddSkimpifyEvent("SwimStart", sw.chance, sw.playerOnly)
-  AddRestoreEvent("swimStop", sw.recoveryTime, sw.playerOnly)
+  AddSkimpifyEvent(A.Animations.SwimStart, sw.chance, sw.playerOnly)
+  AddRestoreEvent(A.Animations.SwimStop, sw.recoveryTime, sw.playerOnly)
 
   const sp = evt.explore.sprint
-  AddSkimpifyEvent("SprintStart", sp.chance, sp.playerOnly)
-  AddRestoreEvent("SprintStop", sp.recoveryTime, sp.playerOnly)
+  AddSkimpifyEvent(A.Animations.SprintStart, sp.chance, sp.playerOnly)
+  AddRestoreEvent(A.Animations.SprintStop, sp.recoveryTime, sp.playerOnly)
 
   const jm = evt.explore.jump
-  AddSkimpifyEvent("JumpStandingStart", jm.chance, jm.playerOnly)
-  AddSkimpifyEvent("JumpDirectionalStart", jm.chance, jm.playerOnly)
+  AddSkimpifyEvent(A.Animations.JumpStandingStart, jm.chance, jm.playerOnly)
+  AddSkimpifyEvent(A.Animations.JumpDirectionalStart, jm.chance, jm.playerOnly)
 
   // These were deactivated because they tended to break "muh immersion"
   // AddRestoreEvent("JumpLand", evt.jump.recoveryTime, true)
@@ -50,48 +51,91 @@ function HookExploring() {
 function HookCombat() {
   const at = evt.combat.attack.chance
   const pa = evt.combat.powerAttack.chance
-  AddSkimpifyEvent("attackStart", at, true)
-  AddSkimpifyEvent("bowAttackStart", at, true)
-  AddSkimpifyEvent("attackPowerStartInPlace", pa, true)
-  AddSkimpifyEvent("attackPowerStartForward", pa, true)
-  AddSkimpifyEvent("attackPowerStartBackward", pa, true)
-  AddSkimpifyEvent("attackPowerStartRight", pa, true)
-  AddSkimpifyEvent("attackPowerStartLeft", pa, true)
+  HookManySkimpify(
+    [
+      A.Animations.AttackStart,
+      A.Animations.BowAttackStart,
+      A.Animations.AttackStartDualWield,
+      A.Animations.AttackStartH2HLeft,
+      A.Animations.AttackStartH2HRight,
+      A.Animations.AttackStartLeftHand,
+    ],
+    at,
+    true
+  )
+  HookManySkimpify(
+    [
+      A.Animations.AttackPowerStartInPlace,
+      A.Animations.AttackPowerStartInPlaceLeftHand,
+      A.Animations.AttackPowerStartForward,
+      A.Animations.AttackPowerStartForwardLeftHand,
+      A.Animations.AttackPowerStartForwardH2HRightHand,
+      A.Animations.AttackPowerStartForwardH2HLeftHand,
+      A.Animations.AttackPowerStartBackward,
+      A.Animations.AttackPowerStartRight,
+      A.Animations.AttackPowerStartRightLeftHand,
+      A.Animations.AttackPowerStartLeft,
+      A.Animations.AttackPowerStartLeftLeftHand,
+      A.Animations.AttackPowerStartDualWield,
+      A.Animations.AttackPowerStartH2HCombo,
+    ],
+    pa,
+    true
+  )
 
-  AddSkimpifyEvent("bashStart", evt.combat.block.chance, true)
+  AddSkimpifyEvent(A.Animations.BashStart, evt.combat.block.chance, true)
 
-  AddRestoreEvent("Unequip", evt.combat.recoveryTime) // Sheathe weapon
+  AddRestoreEvent(A.Animations.Unequip, evt.combat.recoveryTime) // Sheathe weapon
 }
 
 function HookPeasants() {
-  // IdleFeedChicken,
   const be = evt.townspeople.bendOver.chance
   const ly = evt.townspeople.layDown.chance
   const leg = evt.townspeople.liftLegs.chance
-  AddSkimpifyEvent("IdleAlchemyEnter", be, false)
-  AddSkimpifyEvent("IdleBedExitStart", be, false)
-  AddSkimpifyEvent("IdleBedLeftEnterStart", ly, false)
-  AddSkimpifyEvent("IdleBlacksmithForgeEnter", be, false)
-  AddSkimpifyEvent("IdleCarryBucketPourEnter", be, false)
-  AddSkimpifyEvent("IdleChairFrontEnter", leg, false)
-  AddSkimpifyEvent("idleChairShoulderFlex", be, false)
-  AddSkimpifyEvent("ChairDrinkingStart", be, false)
-  AddSkimpifyEvent("IdleCounterStart", be, false)
-  AddSkimpifyEvent("IdleEnchantingEnter", be, false)
-  AddSkimpifyEvent("IdleExamine", be, false)
-  AddSkimpifyEvent("IdleLeanTableEnter", be, false)
-  AddSkimpifyEvent("idleLooseSweepingStart", be, false)
-  AddSkimpifyEvent("IdleSharpeningWheelStart", be, false)
-  AddSkimpifyEvent("IdleTanningEnter", be, false)
-  AddSkimpifyEvent("IdleTelvanniTowerFloatUp", leg, false)
-  AddSkimpifyEvent("IdleTelvanniTowerFloatDown", leg, false)
-  AddSkimpifyEvent("HorseEnter", leg, false)
-  // AddSkimpifyEvent("IdleWallLeanStart", evt.townspeople.chance, false)
+  HookManySkimpify(
+    [
+      A.Animations.IdleAlchemyEnter,
+      A.Animations.IdleBedExitStart,
+      A.Animations.IdleBlacksmithForgeEnter,
+      A.Animations.IdleCarryBucketPourEnter,
+      A.Animations.IdleChairShoulderFlex,
+      A.Animations.ChairDrinkingStart,
+      A.Animations.IdleCounterStart,
+      A.Animations.IdleEnchantingEnter,
+      A.Animations.IdleExamine,
+      A.Animations.IdleLeanTableEnter,
+      A.Animations.IdleLooseSweepingStart,
+      A.Animations.IdleSharpeningWheelStart,
+      A.Animations.IdleTanningEnter,
+    ],
+    be,
+    false
+  )
+  HookManySkimpify(
+    [
+      A.Animations.IdleChairFrontEnter,
+      A.Animations.IdleTelvanniTowerFloatDown,
+      A.Animations.IdleTelvanniTowerFloatUp,
+      A.Animations.HorseEnter,
+      A.Animations.HorseExit,
+    ],
+    leg,
+    false
+  )
+  AddSkimpifyEvent(A.Animations.IdleBedLeftEnterStart, ly, false)
 
   const rt = evt.townspeople.recoveryTime
-  AddRestoreEvent("IdleStop", rt, false, redressNPC.enabled)
-  AddRestoreEvent("IdleStopInstant", rt, false, redressNPC.enabled)
-  AddRestoreEvent("HorseExit", rt, false, redressNPC.enabled)
+  AddRestoreEvent(A.Animations.IdleStop, rt, false, redressNPC.enabled)
+  AddRestoreEvent(A.Animations.IdleStopInstant, rt, false, redressNPC.enabled)
+  AddRestoreEvent(A.Animations.HorseExit, rt, false, redressNPC.enabled)
+}
+
+function HookManySkimpify(
+  evts: string[],
+  chance: SkimpyEventChance,
+  playerOnly: boolean = true
+) {
+  evts.forEach((e) => AddSkimpifyEvent(e, chance, playerOnly))
 }
 
 function AddHook(name: string, f: (id: number) => void, playerOnly: boolean) {
