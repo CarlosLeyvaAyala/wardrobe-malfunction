@@ -8,6 +8,7 @@ import {
   GetChange,
   GetDamage,
   GetModestData,
+  GetMostModest,
   GetSlip,
   HasSkimpy,
   IsNotRegistered,
@@ -214,16 +215,9 @@ export function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
  */
 function RestoreMostModest(act: Actor) {
   FormLib.ForEachEquippedArmor(act, (a) => {
-    const na = MostModest(a)
+    const na = GetMostModest(a)
     if (na) Swap(act, a, na)
   })
-}
-
-function MostModest(a: Armor): Armor | null {
-  const p = GetModestData(a)
-  if (!p.armor || p.kind === ChangeRel.damage) return null
-  const pp = MostModest(p.armor)
-  return pp ? pp : p.armor
 }
 
 export interface ChangePair {
