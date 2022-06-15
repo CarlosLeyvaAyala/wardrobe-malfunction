@@ -80,7 +80,7 @@ export function TrySkimpify(
     skimpable = skimpable.filter((v) => {
       if (CanChange()) {
         const na = Skimpify(v)
-        if (!na) return true
+        if (!na) return true // Has no skimpy version. Can still be processed later.
 
         MsgF(v)
         r.push({ from: v, to: na })
@@ -103,8 +103,8 @@ export function TrySkimpify(
   damages.forEach((v) => Swap(ac, v.from, v.to))
 
   if (!canUnequip) return
-
-  TryUnequip(ac, skimpable, unequipable, c.unequip)
+  // Try to unequip all armors that weren't processed before.
+  TryUnequip(ac, skimpable.concat(unequipable), c.unequip)
 }
 
 /** Unequips armors from an `Actor` with some chance.
@@ -115,14 +115,13 @@ export function TrySkimpify(
  * @param c Chance to unequip armors.
  * @returns
  */
-function TryUnequip(ac: Actor, s: Armor[], u: Armor[], c: number | undefined) {
+function TryUnequip(ac: Actor, armors: Armor[], c: number | undefined) {
   if (!c || c <= 0) return
   const Try = GetChance(c)
-  const e = s.concat(u)
   const S = ac.getFormID() === playerId ? SavePlayerEquipment : () => {}
   const M = MalfunctionMsg(ac, "was unequipped", malfunctionMsg.unequip)
 
-  e.forEach((a) => {
+  armors.forEach((a) => {
     if (!Try()) return
     ac.unequipItem(a, false, true)
     M(a)
@@ -132,12 +131,24 @@ function TryUnequip(ac: Actor, s: Armor[], u: Armor[], c: number | undefined) {
 
 const playerEqK = ".wardrobe-malfunction.playerEq"
 
+/** Saves the armor the player has equipped before it is unequipped, so
+ * it can be automatically restored later.
+ *
+ * @remarks
+ * Saved armors can be skimpy versions of their base armor. Those will be
+ * restored as is.\
+ * Other functions should take care of restoring the most modest version.
+ */
 function SavePlayerEquipment(a: Armor) {
   const k = playerEqK + "." + a.getSlotMask()
   JDB.solveFormSetter(k, a, true)
 }
 
-/** Restores player armor that was unequipped by this mod. */
+/** Restores player armor that was unequipped by this mod while fighting.
+ * @remarks
+ * There's no need to save/restore unequipped armors for NPCs, since the
+ * Skyrim engine will automatically do that on screen loading.
+ */
 function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
   const p = Game.getPlayer() as Actor
   const oo = JDB.solveObj(playerEqK)
@@ -262,12 +273,17 @@ export const Swap = (a: Actor, aO: Armor, aN: Armor) => {
 
 export const GetChance = (x: number) => () => Math.random() <= x
 
+/** @experimental
+ * This doesn't work for all NPCs because the event itself doesn't do that.\
+ * SPID can be used to solve this, but that would mean an esp plugin is needed.
+ */
 export function RedressNpcEvt(e: ObjectLoadedEvent) {
   if (e.isLoaded === true) return
   RedressNpc(Actor.from(e.object))
 }
 
-/** Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
+/** @experimental
+ * Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
 export function RedressNpc(a: Actor | null) {
   if (!a || a.isDead() || (ActorIsFollower(a) && !redressNPC.workOnFollowers))
     return
