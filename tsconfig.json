@@ -23,7 +23,7 @@
       ]
     },
     "outFile": "F:/Skyrim SE/MO2/overwrite/Platform/Plugins/wardrobe-malfunction.js",
-    "baseUrl": "."
+    "baseUrl": "F:\\Steam\\steamapps\\common\\Skyrim Special Edition\\Data\\Platform\\Modules"
   },
   "include": [
     "./*.ts"

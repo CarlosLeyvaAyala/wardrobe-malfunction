@@ -14,6 +14,7 @@ export const logHits = devOpt.logHits as boolean
 const devUsr = settings[n]["config"].user
 export const restoreEquipC = devUsr.restoreEquipmentChance as number
 export const restoreEquipHk = Hotkeys.FromValue(devUsr.restoreEquipmentHk)
+export const CTD_fix: ICTD_fix = devUsr.CTD_fix
 export const redressNPC = devUsr.redressNPC as RedressNPC
 export const logLvl = DebugLib.Log.LevelFromValue(devUsr.log.level)
 export const logToConsole = devUsr.log.toConsole as boolean
@@ -22,6 +23,10 @@ export const malfunctionMsg = devUsr.messages as MalfunctionMessages
 
 /** Events configuration. */
 export const evt = settings[n]["events"] as SkimpyEvents
+
+export interface ICTD_fix {
+  spriggansWispMothers: boolean
+}
 
 /** Configuration for all events. */
 export interface SkimpyEvents {

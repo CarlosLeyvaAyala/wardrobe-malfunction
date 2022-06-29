@@ -35,8 +35,6 @@ export function HitByWeapon(e: HitEvent) {
 }
 
 export function HitBySpell(e: HitEvent) {
-  if (!e.source) return false
-
   try {
     const id = e.source.getFormID()
     const c = IsShoutL1(id)

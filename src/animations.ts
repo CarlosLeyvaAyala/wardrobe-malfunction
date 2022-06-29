@@ -144,7 +144,9 @@ function AddHook(name: string, f: (id: number) => void, playerOnly: boolean) {
     {
       enter(_) {},
       leave(c) {
-        if (c.animationSucceeded) once("update", () => f(c.selfId))
+        try {
+          if (c.animationSucceeded) once("update", () => f(c.selfId))
+        } catch (error) {}
       },
     },
     filter,

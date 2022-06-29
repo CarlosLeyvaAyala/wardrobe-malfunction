@@ -4,15 +4,14 @@ import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
 import { ActorIsFollower } from "LibFire/LibFire"
 import {
-  ChangeRel,
+  CanUseArmor,
   GetChange,
   GetDamage,
-  GetModestData,
   GetMostModest,
   GetSlip,
   HasSkimpy,
   IsNotRegistered,
-  SkimpyFunc,
+  SkimpyFunc
 } from "skimpify-api"
 import {
   Actor,
@@ -21,19 +20,19 @@ import {
   Form,
   Game,
   ObjectLoadedEvent,
-  Utility,
+  Utility
 } from "skyrimPlatform"
 import {
   malfunctionMsg,
   redressNPC,
   restoreEquipC,
   SkimpyEventChance,
-  SkimpyEventRecoveryTime,
+  SkimpyEventRecoveryTime
 } from "./config"
 import { playerId } from "./constants"
 import { LI, LN } from "./debug"
 
-type FormArg = Form | null | undefined
+type FormArg = Form | null
 type FormToForm = (f: FormArg) => FormArg
 
 /** Creates a malfunction message to let the player know a malfunction happened. */
@@ -60,9 +59,10 @@ export function TrySkimpify(
   c: SkimpyEventChance,
   canUnequip: boolean = false
 ) {
-  const ac = Actor.from(Game.getFormEx(actorId))
-  if (!ac) return
+  const act = Actor.from(Game.getFormEx(actorId))
+  if (!CanUseArmor(act)) return
 
+  const ac = act as Actor // CanUseArmor() guarantees `act` is an Actor
   type M = (v: Armor) => void
 
   let { skimpable, unequipable } = canUnequip
