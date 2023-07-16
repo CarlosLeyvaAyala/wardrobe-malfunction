@@ -1,4 +1,11 @@
-import { Combinators, DebugLib, FormLib } from "DmLib"
+import { waitActor } from "DmLib/Actor"
+import { I } from "DmLib/Combinators"
+import {
+  ForEachEquippedArmor,
+  ForEachOutfitItemR,
+  GetEquippedArmors,
+} from "DmLib/Form"
+import * as Log from "DmLib/Log"
 import * as JDB from "JContainers/JDB"
 import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
@@ -11,7 +18,7 @@ import {
   GetSlip,
   HasSkimpy,
   IsNotRegistered,
-  SkimpyFunc
+  SkimpyFunc,
 } from "skimpify-api"
 import {
   Actor,
@@ -20,14 +27,14 @@ import {
   Form,
   Game,
   ObjectLoadedEvent,
-  Utility
+  Utility,
 } from "skyrimPlatform"
 import {
+  SkimpyEventChance,
+  SkimpyEventRecoveryTime,
   malfunctionMsg,
   redressNPC,
   restoreEquipC,
-  SkimpyEventChance,
-  SkimpyEventRecoveryTime
 } from "./config"
 import { playerId } from "./constants"
 import { LI, LN } from "./debug"
@@ -149,7 +156,7 @@ function SavePlayerEquipment(a: Armor) {
  * There's no need to save/restore unequipped armors for NPCs, since the
  * Skyrim engine will automatically do that on screen loading.
  */
-function RestorePlayerEquipment(f: FormToForm = Combinators.I) {
+function RestorePlayerEquipment(f: FormToForm = I) {
   const p = Game.getPlayer() as Actor
   const oo = JDB.solveObj(playerEqK)
 
@@ -197,15 +204,17 @@ export function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
   const min = t.min === undefined || max <= 0 ? 0 : t.min
   const w = max <= 0 ? 0 : Math.random() * (max - min) + min
 
-  FormLib.WaitActor(ac, w, (act) => {
+  waitActor(ac, w, (act) => {
     if (
       act.isDead() ||
+      act.isRunning() ||
       act.isSprinting() ||
       act.isSneaking() ||
-      act.isFlying() ||
       act.isInCombat() ||
       act.isSwimming() ||
-      act.isWeaponDrawn()
+      act.isWeaponDrawn() ||
+      act.isFlying() ||
+      act.isFurnitureInUse(false)
     )
       return
 
@@ -225,7 +234,7 @@ export function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
  * @param act Actor to restore their armor.
  */
 function RestoreMostModest(act: Actor) {
-  FormLib.ForEachEquippedArmor(act, (a) => {
+  ForEachEquippedArmor(act, (a) => {
     const na = GetMostModest(a)
     if (na) Swap(act, a, na)
   })
@@ -245,13 +254,13 @@ interface ArmorTypes {
 
 export function GetSkimpable(ac: Actor): ArmorTypes {
   return {
-    skimpable: FormLib.GetEquippedArmors(ac).filter((v) => HasSkimpy(v)),
+    skimpable: GetEquippedArmors(ac).filter((v) => HasSkimpy(v)),
     unequipable: [],
   }
 }
 
 export function DivideByType(ac: Actor): ArmorTypes {
-  const equipped = FormLib.GetEquippedArmors(ac)
+  const equipped = GetEquippedArmors(ac)
   let s: Armor[] = []
   let u: Armor[] = []
 
@@ -292,11 +301,11 @@ export function RedressNpc(a: Actor | null) {
   if (!b) return
 
   // Restore unequipped armors that are registered in the framework
-  FormLib.ForEachOutfitItemR(b.getOutfit(false), (i) => {
+  ForEachOutfitItemR(b.getOutfit(false), (i) => {
     if (a.isEquipped(i) || IsNotRegistered(Armor.from(i))) return
     a.equipItem(i, false, true)
     LI(
-      `Fixing badly outfitted NPC: ${b.getName()} (${DebugLib.Log.IntToHex(
+      `Fixing badly outfitted NPC: ${b.getName()} (${Log.IntToHex(
         a.getFormID()
       )}). Armor: ${i.getName()}.`
     )

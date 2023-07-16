@@ -1,6 +1,7 @@
-import { DebugLib, Hotkeys } from "DmLib"
+import * as HK from "DmLib/Hotkeys"
+import * as Log from "DmLib/Log"
 import { CanUseArmor } from "skimpify-api"
-import { Actor, DxScanCode, HitEvent, on } from "skyrimPlatform"
+import { Actor, DxScanCode, HitEvent, on, printConsole } from "skyrimPlatform"
 import { HookAnims } from "./animations"
 import {
   CTD_fix,
@@ -22,16 +23,19 @@ import { HitBySpell, HitByWeapon, LogHit } from "./hits"
 
 const LH = logHits ? LogHit : () => {}
 export function main() {
+  printConsole("*".repeat(200))
+  printConsole("*".repeat(200))
+  printConsole("*".repeat(200))
   HookAnims()
   if (!CTD_fix.spriggansWispMothers) on("hit", OnHit)
 
-  const OnT = Hotkeys.ListenToS(DxScanCode.Backspace, devHotkeys)
+  const OnT = HK.ListenToS(DxScanCode.Backspace, devHotkeys)
   const T = () => TrySkimpify(playerId, evt.combat.powerAttacked.chance, true)
 
-  const OnT2 = Hotkeys.ListenToS(DxScanCode.RightControl, devHotkeys)
+  const OnT2 = HK.ListenToS(DxScanCode.RightControl, devHotkeys)
   const T2 = () => TryRestore(playerId, evt.explore.swim.recoveryTime)
 
-  const OnRedress = Hotkeys.ListenTo(restoreEquipHk)
+  const OnRedress = HK.ListenTo(restoreEquipHk)
 
   on("update", () => {
     OnRedress(Redress)
@@ -43,13 +47,13 @@ export function main() {
 
   const B = (v: boolean) => (v ? "ENABLED" : "DISABLED")
   LN("Successful initialization")
-  LN(`Redress hotkey: ${Hotkeys.ToString(restoreEquipHk)}`)
+  LN(`Redress hotkey: ${HK.ToString(restoreEquipHk)}`)
   LN(`Notify slips: ${B(malfunctionMsg.slip)}`)
   LN(`Notify changes: ${B(malfunctionMsg.change)}`)
   LN(`Notify damages: ${B(malfunctionMsg.damage)}`)
   LN(`Notify unequip: ${B(malfunctionMsg.unequip)}`)
   LN(`Dev hotkeys: ${B(devHotkeys)}`)
-  LN(`Logging level: ${DebugLib.Log.Level[logLvl]}`)
+  LN(`Logging level: ${Log.Level[logLvl]}`)
   LN(`Log to console: ${B(logToConsole)}`)
   LN(`Log to file: ${B(logToFile)}`)
   LN(`Log hits: ${B(logHits)}`)
