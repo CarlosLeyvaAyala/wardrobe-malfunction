@@ -13,6 +13,7 @@ export const logHits = devOpt.logHits as boolean
 
 //@ts-ignore
 const devUsr = settings[n]["config"].user
+/** Chance to restore all equipment by using the hotkey. */
 export const restoreEquipC = devUsr.restoreEquipmentChance as number
 export const restoreEquipHk = HK.FromValue(devUsr.restoreEquipmentHk)
 export const CTD_fix: ICTD_fix = devUsr.CTD_fix

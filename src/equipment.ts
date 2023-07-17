@@ -16,6 +16,7 @@ import {
   GetDamage,
   GetMostModest,
   GetSlip,
+  HasModest,
   HasSkimpy,
   IsNotRegistered,
   SkimpyFunc,
@@ -181,20 +182,64 @@ function ClearRestoredArmors(o: number) {
   JMap.addPairs(o, c, true)
 }
 
+/** Checks if an `Actor` has equipped ANY skimpy armor.
+ *
+ * @param a The `Actor` to check.
+ * @returns `boolean`
+ */
+function HasSkimpyEquipped(a: Actor | null) {
+  const armors = GetEquippedArmors(a)
+  return armors.some((armor) => HasModest(armor))
+}
+
+///////////////////////////////////////////////////////////
+// Redress
+type RedressOp = [string, () => void]
+
+const needsToRestoreLostClothes: RedressOp = [
+  `You hastily ${
+    restoreEquipC < 1 ? "try to put on some" : "put on all your"
+  } clothes.`,
+  () => RestorePlayerEquipment(WithChance),
+]
+
+const allIsInOrder: RedressOp = [
+  "You just realized you already have equipped all clothes you lost during battle.",
+  () => {},
+]
+
+const shouldAdjustClothes: RedressOp = [
+  "You just adjusted your clothes.",
+  () => RestoreMostModest(Game.getPlayer() as Actor),
+]
+
+function getRedressOperation(lostClothesQty: number): RedressOp {
+  if (lostClothesQty > 0) return needsToRestoreLostClothes
+  else {
+    if (HasSkimpyEquipped(Game.getPlayer() as Actor)) return shouldAdjustClothes
+    else return allIsInOrder
+  }
+}
+
 export const Redress = () => {
-  const c = JMap.count(JDB.solveObj(playerEqK))
-  const m =
-    c === 0
-      ? "You just realized you already have equipped all clothes you lost during battle."
-      : `You hastily ${
-          restoreEquipC < 1 ? "try to put on some" : "put on all your"
-        } clothes.`
-  if (c > 0) RestorePlayerEquipment(WithChance)
+  //   const c = JMap.count(JDB.solveObj(playerEqK))
+  //   const m =
+  //     c === 0
+  //       ? "You just realized you already have equipped all clothes you lost during battle."
+  //       : `You hastily ${
+  //           restoreEquipC < 1 ? "try to put on some" : "put on all your"
+  //         } clothes.`
+  //   if (c > 0) RestorePlayerEquipment(WithChance)
+  //   else RestoreMostModest(Game.getPlayer() as Actor)
+  const [m, op] = getRedressOperation(JMap.count(JDB.solveObj(playerEqK)))
+  op()
   LN(m)
   Debug.notification(m)
 }
 
 const WithChance = (f: FormArg) => (GetChance(restoreEquipC)() ? f : null)
+
+///////////////////////////////////////////////////////////
 
 export function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
   const ac = Actor.from(Game.getFormEx(actorId))
