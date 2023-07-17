@@ -258,6 +258,7 @@ export function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
       act.isInCombat() ||
       act.isSwimming() ||
       act.isWeaponDrawn() ||
+      act.isOnMount() ||
       act.isFlying() ||
       act.isFurnitureInUse(false)
     )
