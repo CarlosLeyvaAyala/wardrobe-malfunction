@@ -18,6 +18,7 @@ import {
   GetSlip,
   HasModest,
   HasSkimpy,
+  HasSkimpyArmorEquipped,
   IsNotRegistered,
   SkimpyFunc,
 } from "skimpify-api"
@@ -182,16 +183,6 @@ function ClearRestoredArmors(o: number) {
   JMap.addPairs(o, c, true)
 }
 
-/** Checks if an `Actor` has equipped ANY skimpy armor.
- *
- * @param a The `Actor` to check.
- * @returns `boolean`
- */
-function HasSkimpyEquipped(a: Actor | null) {
-  const armors = GetEquippedArmors(a)
-  return armors.some((armor) => HasModest(armor))
-}
-
 ///////////////////////////////////////////////////////////
 // Redress
 type RedressOp = [string, () => void]
@@ -216,21 +207,13 @@ const shouldAdjustClothes: RedressOp = [
 function getRedressOperation(lostClothesQty: number): RedressOp {
   if (lostClothesQty > 0) return needsToRestoreLostClothes
   else {
-    if (HasSkimpyEquipped(Game.getPlayer() as Actor)) return shouldAdjustClothes
+    if (HasSkimpyArmorEquipped(Game.getPlayer() as Actor))
+      return shouldAdjustClothes
     else return allIsInOrder
   }
 }
 
 export const Redress = () => {
-  //   const c = JMap.count(JDB.solveObj(playerEqK))
-  //   const m =
-  //     c === 0
-  //       ? "You just realized you already have equipped all clothes you lost during battle."
-  //       : `You hastily ${
-  //           restoreEquipC < 1 ? "try to put on some" : "put on all your"
-  //         } clothes.`
-  //   if (c > 0) RestorePlayerEquipment(WithChance)
-  //   else RestoreMostModest(Game.getPlayer() as Actor)
   const [m, op] = getRedressOperation(JMap.count(JDB.solveObj(playerEqK)))
   op()
   LN(m)
