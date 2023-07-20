@@ -9,7 +9,7 @@ import * as Log from "DmLib/Log"
 import * as JDB from "JContainers/JDB"
 import * as JMap from "JContainers/JMap"
 import { JMapL } from "JContainers/JTs"
-import { ActorIsFollower } from "LibFire/LibFire"
+// import { ActorIsFollower } from "LibFire/LibFire"
 import {
   CanUseArmor,
   GetChange,
@@ -323,8 +323,8 @@ export function RedressNpcEvt(e: ObjectLoadedEvent) {
 /** @experimental
  * Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
 export function RedressNpc(a: Actor | null) {
-  if (!a || a.isDead() || (ActorIsFollower(a) && !redressNPC.workOnFollowers))
-    return
+  //   if (!a || a.isDead() || (ActorIsFollower(a) && !redressNPC.workOnFollowers))
+  if (!a || a.isDead()) return
 
   const b = a.getLeveledActorBase()
   if (!b) return

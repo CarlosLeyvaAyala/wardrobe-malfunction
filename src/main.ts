@@ -1,10 +1,9 @@
 import * as HK from "DmLib/Hotkeys"
 import * as Log from "DmLib/Log"
 import { CanUseArmor } from "skimpify-api"
-import { Actor, DxScanCode, HitEvent, on, printConsole } from "skyrimPlatform"
+import { Actor, DxScanCode, HitEvent, on } from "skyrimPlatform"
 import { HookAnims } from "./animations"
 import {
-  CTD_fix,
   devHotkeys,
   evt,
   logAnim,
@@ -23,11 +22,7 @@ import { HitBySpell, HitByWeapon, LogHit } from "./hits"
 
 const LH = logHits ? LogHit : () => {}
 export function main() {
-  printConsole("*".repeat(200))
-  printConsole("*".repeat(200))
-  printConsole("*".repeat(200))
   HookAnims()
-  if (!CTD_fix.spriggansWispMothers) on("hit", OnHit)
 
   const OnT = HK.ListenToS(DxScanCode.Backspace, devHotkeys)
   const T = () => TrySkimpify(playerId, evt.combat.powerAttacked.chance, true)
@@ -43,7 +38,7 @@ export function main() {
     // OnT2(T2)
   })
 
-  if (redressNPC.enabled) on("objectLoaded", RedressNpcEvt)
+  //   if (redressNPC.enabled) on("objectLoaded", RedressNpcEvt)
 
   const B = (v: boolean) => (v ? "ENABLED" : "DISABLED")
   LN("Successful initialization")
@@ -73,6 +68,3 @@ function OnHit(e: HitEvent) {
   LH(e)
   if (!HitBySpell(e)) HitByWeapon(e)
 }
-
-const IsSpriggan = (a: number) =>
-  a === 0x23ab9 || a === 0x7e6c5 || a === 0x9da9b

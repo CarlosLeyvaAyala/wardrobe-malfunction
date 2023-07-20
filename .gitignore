@@ -110,3 +110,5 @@ Platform/Plugins/auto-unequip-ammo.js
 _img/*
 Platform/Plugins/skimpify-framework.js
 .vscode/numbered-bookmarks.json
+Platform/Plugins/wardrobe-malfunction.js
+tsconfig.json

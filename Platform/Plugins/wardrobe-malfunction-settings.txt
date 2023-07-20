@@ -1,9 +1,6 @@
 {
   "config": {
     "user": {
-      "CTD_fix": {
-        "spriggansWispMothers": false
-      },
       "restoreEquipmentHk": "Ctrl Enter",
       "restoreEquipmentChance": 0.5,
       "redressNPC": {
