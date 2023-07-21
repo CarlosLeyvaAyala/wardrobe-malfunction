@@ -23,6 +23,14 @@ import { HitBySpell, HitByWeapon, LogHit } from "./hits"
 const LH = logHits ? LogHit : () => {}
 export function main() {
   HookAnims()
+  const LH = logHits ? LogHit : () => {}
+
+  /** This event counts for any Actor in combat */
+  on("hit", (e) => {
+    // TODO: Add option to disable in AE
+    LH(e)
+    if (!HitBySpell(e)) HitByWeapon(e)
+  })
 
   const OnT = HK.ListenToS(DxScanCode.Backspace, devHotkeys)
   const T = () => TrySkimpify(playerId, evt.combat.powerAttacked.chance, true)

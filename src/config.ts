@@ -46,14 +46,20 @@ export interface ExplorationEvents {
 
 export interface CombatEvents {
   recoveryTime: SkimpyEventRecoveryTime
+  /** Event when `Actor` is attacking. */
   attack: SkimpyEvent
+  /** Event when `Actor` is power attacking. */
   powerAttack: SkimpyEvent
   fus: SkimpyEvent
   fusRo: SkimpyEvent
   fusRoDa: SkimpyEvent
   block: SkimpyEvent
+  /** Event when `Actor` is being attacked. */
   attacked: SkimpyEvent
+  /** Event when `Actor` is being power attacked. */
   powerAttacked: SkimpyEvent
+  /** Event when `Actor` gets hit by an arrow. */
+  arrow: SkimpyEvent
 }
 
 export interface PeasantEvents {

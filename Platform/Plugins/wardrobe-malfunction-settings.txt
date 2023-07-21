@@ -160,6 +160,14 @@
           "unequip": 0.03
         }
       },
+      "arrow": {
+        "chance": {
+          "slip": 0.5,
+          "change": 0.05,
+          "damage": 0.1,
+          "unequip": 0
+        }
+      },
       "powerAttacked": {
         "chance": {
           "slip": 0.4,

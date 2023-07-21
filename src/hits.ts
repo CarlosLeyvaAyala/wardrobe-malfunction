@@ -1,4 +1,11 @@
-import { Ammo, HitEvent, Weapon, WeaponType, writeLogs } from "skyrimPlatform"
+import {
+  Ammo,
+  HitEvent,
+  Weapon,
+  WeaponType,
+  printConsole,
+  writeLogs,
+} from "skyrimPlatform"
 import { evt } from "./config"
 import { devLogName } from "./constants"
 import { LE } from "./debug"
@@ -19,15 +26,18 @@ export function HitByWeapon(e: HitEvent) {
   try {
     const w = Weapon.from(e.source)
     if (!w) return
-    const t = w.getWeaponType()
-    if (t === WeaponType.Crossbow || t === WeaponType.Bow) return
 
-    if (Ammo.from(e.source)) return
-    const c = e.isHitBlocked
-      ? evt.combat.block.chance
-      : e.isBashAttack || e.isPowerAttack
-      ? evt.combat.powerAttacked.chance
-      : evt.combat.attacked.chance
+    const t = w.getWeaponType()
+
+    const c =
+      t === WeaponType.Crossbow || t === WeaponType.Bow || Ammo.from(e.source)
+        ? evt.combat.arrow.chance
+        : e.isHitBlocked
+        ? evt.combat.block.chance
+        : e.isBashAttack || e.isPowerAttack
+        ? evt.combat.powerAttacked.chance
+        : evt.combat.attacked.chance
+
     TrySkimpify(e.target.getFormID(), c, true)
   } catch (error) {
     LE(`Error on hit: ${error}`)
