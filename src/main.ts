@@ -29,7 +29,7 @@ export function main() {
   on("hit", (e) => {
     // TODO: Add option to disable in AE
     LH(e)
-    if (!HitBySpell(e)) HitByWeapon(e)
+    OnHit(e)
   })
 
   const OnT = HK.ListenToS(DxScanCode.Backspace, devHotkeys)
@@ -69,9 +69,6 @@ export function main() {
  * Moved as a separate function because AE CTDs if not.
  */
 function OnHit(e: HitEvent) {
-  // const a = e.aggressor.getBaseObject()?.getFormID()
-  // if (!a || IsSpriggan(a)) return
-  // LN("e.aggressor: " + e.aggressor.getBaseObject()?.getFormID().toString(16))
   if (!CanUseArmor(Actor.from(e.target)) || !e.source) return
   LH(e)
   if (!HitBySpell(e)) HitByWeapon(e)
