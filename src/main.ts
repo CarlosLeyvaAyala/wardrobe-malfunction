@@ -12,12 +12,11 @@ import {
   logToConsole,
   logToFile,
   malfunctionMsg,
-  redressNPC,
   restoreEquipHk,
 } from "./config"
 import { playerId } from "./constants"
 import { LN } from "./debug"
-import { Redress, RedressNpcEvt, TryRestore, TrySkimpify } from "./equipment"
+import { Redress, TryRestore, TrySkimpify } from "./equipment"
 import { HitBySpell, HitByWeapon, LogHit } from "./hits"
 
 const LH = logHits ? LogHit : () => {}

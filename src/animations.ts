@@ -107,6 +107,7 @@ function HookPeasants() {
       Animations.IdleLooseSweepingStart,
       Animations.IdleSharpeningWheelStart,
       Animations.IdleTanningEnter,
+      Animations.IdlePrayCrouchedEnter,
     ],
     be,
     false

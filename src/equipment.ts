@@ -1,4 +1,4 @@
-import { waitActor } from "DmLib/Actor"
+import { Player, waitActor } from "DmLib/Actor"
 import { I } from "DmLib/Combinators"
 import {
   ForEachEquippedArmor,
@@ -194,6 +194,11 @@ const needsToRestoreLostClothes: RedressOp = [
   () => RestorePlayerEquipment(WithChance),
 ]
 
+const needsToAdjustClothesInCombat: RedressOp = [
+  `You hastily ${restoreEquipC < 1 ? "try to " : ""} adjust your clothes.`,
+  () => RestorePlayerEquipment(WithChance),
+]
+
 const allIsInOrder: RedressOp = [
   "You just realized you already have equipped all clothes you lost during battle.",
   () => {},
@@ -205,10 +210,12 @@ const shouldAdjustClothes: RedressOp = [
 ]
 
 function getRedressOperation(lostClothesQty: number): RedressOp {
-  if (lostClothesQty > 0) return needsToRestoreLostClothes
+  const p = Player()
+  if (lostClothesQty > 0)
+    if (p.isInCombat()) return needsToAdjustClothesInCombat
+    else return needsToRestoreLostClothes
   else {
-    if (HasSkimpyArmorEquipped(Game.getPlayer() as Actor))
-      return shouldAdjustClothes
+    if (HasSkimpyArmorEquipped(p)) return shouldAdjustClothes
     else return allIsInOrder
   }
 }
