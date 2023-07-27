@@ -1,9 +1,10 @@
-import { Player, waitActor, waitActorId } from "DmLib/Actor"
+import { Player, waitActor } from "DmLib/Actor"
 import { I } from "DmLib/Combinators"
 import {
   ForEachEquippedArmor,
   ForEachOutfitItemR,
   GetEquippedArmors,
+  removeAllFromThisItem,
 } from "DmLib/Form"
 import * as Log from "DmLib/Log"
 import * as JDB from "JContainers/JDB"
@@ -13,30 +14,20 @@ import { JMapL } from "JContainers/JTs"
 import {
   CanUseArmor,
   GetChange,
+  GetChest,
   GetDamage,
   GetMostModest,
   GetSlip,
-  HasModest,
   HasSkimpy,
   HasSkimpyArmorEquipped,
   IsNotRegistered,
   SkimpyFunc,
 } from "skimpify-api"
-import {
-  Actor,
-  Armor,
-  Debug,
-  Form,
-  Game,
-  ObjectLoadedEvent,
-  Utility,
-  printConsole,
-} from "skyrimPlatform"
+import { Actor, Armor, Debug, Form, Game } from "skyrimPlatform"
 import {
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
   malfunctionMsg,
-  redressNPC,
   restoreEquipC,
 } from "./config"
 import { playerId } from "./constants"
@@ -325,7 +316,15 @@ export function DivideByType(ac: Actor): ArmorTypes {
 }
 
 export const Swap = (a: Actor, aO: Armor, aN: Armor) => {
-  a.removeItem(aO, 1, true, null)
+  const chest = GetChest(a)
+  a.removeItem(aO, 1, true, chest)
+
+  if (chest && chest.getItemCount(aN) >= 1) {
+    chest.removeItem(aN, 1, true, a)
+    // Avoid having repeated items
+    removeAllFromThisItem(chest, aN)
+  }
+
   a.equipItem(aN, false, true)
 }
 
