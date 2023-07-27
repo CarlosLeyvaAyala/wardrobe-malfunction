@@ -1,4 +1,4 @@
-import { Player, waitActor } from "DmLib/Actor"
+import { Player, waitActor, waitActorId } from "DmLib/Actor"
 import { I } from "DmLib/Combinators"
 import {
   ForEachEquippedArmor,
@@ -30,6 +30,7 @@ import {
   Game,
   ObjectLoadedEvent,
   Utility,
+  printConsole,
 } from "skyrimPlatform"
 import {
   SkimpyEventChance,
@@ -230,38 +231,50 @@ export const Redress = () => {
 const WithChance = (f: FormArg) => (GetChance(restoreEquipC)() ? f : null)
 
 ///////////////////////////////////////////////////////////
+const canNotRedress = (a: Actor) =>
+  a.isDead() ||
+  a.isRunning() ||
+  a.isSprinting() ||
+  a.isSneaking() ||
+  a.isInCombat() ||
+  a.isSwimming() ||
+  a.isWeaponDrawn() ||
+  a.isOnMount() ||
+  a.isFlying() ||
+  a.isFurnitureInUse(false)
 
-export function TryRestore(actorId: number, t: SkimpyEventRecoveryTime) {
+function getWaitTime(t: SkimpyEventRecoveryTime) {
+  const max = t.max === undefined ? 0 : t.max
+  const min = t.min === undefined || max <= 0 ? 0 : t.min
+  return max <= 0 ? 0 : Math.random() * (max - min) + min
+}
+
+export function RedressPlayer(actorId: number, t: SkimpyEventRecoveryTime) {
   const ac = Actor.from(Game.getFormEx(actorId))
   if (!ac) return
 
-  const max = t.max === undefined ? 0 : t.max
-  const min = t.min === undefined || max <= 0 ? 0 : t.min
-  const w = max <= 0 ? 0 : Math.random() * (max - min) + min
+  //   const max = t.max === undefined ? 0 : t.max
+  //   const min = t.min === undefined || max <= 0 ? 0 : t.min
+  //   const w = max <= 0 ? 0 : Math.random() * (max - min) + min
 
-  waitActor(ac, w, (act) => {
-    if (
-      act.isDead() ||
-      act.isRunning() ||
-      act.isSprinting() ||
-      act.isSneaking() ||
-      act.isInCombat() ||
-      act.isSwimming() ||
-      act.isWeaponDrawn() ||
-      act.isOnMount() ||
-      act.isFlying() ||
-      act.isFurnitureInUse(false)
-    )
-      return
+  waitActor(ac, getWaitTime(t), (act) => {
+    if (canNotRedress(act)) return
 
-    if (actorId === playerId) {
-      RestorePlayerEquipment()
-      const f = async () => {
-        await Utility.wait(0.1)
-        RestoreMostModest(Game.getPlayer() as Actor)
-      }
-      f()
-    } else RestoreMostModest(act)
+    // if (actorId === playerId) {
+    RestorePlayerEquipment()
+    RedressMostModest(Player())
+    // const f = async () => {
+    //   await Utility.wait(0.1)
+    //   RestoreMostModest(Game.getPlayer() as Actor)
+    // }
+    // f()
+    // } else RestoreMostModest(act)
+  })
+}
+
+function RedressMostModest(a: Actor) {
+  waitActor(a, 0.1, (act) => {
+    RestoreMostModest(act)
   })
 }
 
@@ -322,19 +335,23 @@ export const GetChance = (x: number) => () => Math.random() <= x
  * This doesn't work for all NPCs because the event itself doesn't do that.\
  * SPID can be used to solve this, but that would mean an esp plugin is needed.
  */
-export function RedressNpcEvt(e: ObjectLoadedEvent) {
-  if (e.isLoaded === true) return
-  RedressNpc(Actor.from(e.object))
-}
+// export function RedressNpcEvt(e: ObjectLoadedEvent) {
+//   if (e.isLoaded === true) return
+//   RedressNpc(Actor.from(e.object))
+// }
 
 /** @experimental
  * Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
-export function RedressNpc(a: Actor | null) {
-  //   if (!a || a.isDead() || (ActorIsFollower(a) && !redressNPC.workOnFollowers))
-  if (!a || a.isDead()) return
+export function RedressNpc(formId: number, time: SkimpyEventRecoveryTime) {
+  //   printConsole("Redressing npc " + formId)
+  const a = Actor.from(Game.getFormEx(formId))
+  if (!a) return
 
   const b = a.getLeveledActorBase()
   if (!b) return
+
+  //   waitActorId(formId, getWaitTime(time), (a) => {
+  if (canNotRedress(a)) return
 
   // Restore unequipped armors that are registered in the framework
   ForEachOutfitItemR(b.getOutfit(false), (i) => {
@@ -346,4 +363,7 @@ export function RedressNpc(a: Actor | null) {
       )}). Armor: ${i.getName()}.`
     )
   })
+
+  RedressMostModest(a)
+  //   })
 }

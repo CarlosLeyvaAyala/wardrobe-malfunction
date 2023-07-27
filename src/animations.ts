@@ -4,6 +4,7 @@ import {
   Game,
   hooks,
   once,
+  printConsole,
   SendAnimationEventHook,
   writeLogs,
 } from "skyrimPlatform"
@@ -16,7 +17,7 @@ import {
   SkimpyEventRecoveryTime,
 } from "./config"
 import { devLogName, playerId } from "./constants"
-import { RedressNpc, TryRestore, TrySkimpify } from "./equipment"
+import { RedressNpc, RedressPlayer, TrySkimpify } from "./equipment"
 
 export function HookAnims() {
   LogAnimations(logAnim)
@@ -85,7 +86,7 @@ function HookCombat() {
 
   AddSkimpifyEvent(Animations.BashStart, evt.combat.block.chance, true)
 
-  AddRestoreEvent(Animations.Unequip, evt.combat.recoveryTime) // Sheathe weapon
+  AddRestoreEvent(Animations.Unequip, evt.combat.recoveryTime, false) // Sheathe weapon
 }
 
 function HookPeasants() {
@@ -126,9 +127,9 @@ function HookPeasants() {
   AddSkimpifyEvent(Animations.IdleBedLeftEnterStart, ly, false)
 
   const rt = evt.townspeople.recoveryTime
-  AddRestoreEvent(Animations.IdleStop, rt, false, redressNPC.enabled)
-  AddRestoreEvent(Animations.IdleStopInstant, rt, false, redressNPC.enabled)
-  AddRestoreEvent(Animations.HorseExit, rt, false, redressNPC.enabled)
+  AddRestoreEvent(Animations.IdleStop, rt, false)
+  AddRestoreEvent(Animations.IdleStopInstant, rt, false)
+  AddRestoreEvent(Animations.HorseExit, rt, false)
 }
 
 function HookManySkimpify(
@@ -179,13 +180,19 @@ export function AddSkimpifyEvent(
 export function AddRestoreEvent(
   name: string,
   time: SkimpyEventRecoveryTime,
-  playerOnly: boolean = true,
-  forceNpcs: boolean = false
+  playerOnly: boolean = true
 ) {
   const F = (selfId: number) => {
-    TryRestore(selfId, time)
-    if (forceNpcs && selfId !== playerId)
-      RedressNpc(Actor.from(Game.getFormEx(selfId)))
+    // printConsole(`${selfId} - ${playerOnly}`)
+    if (selfId === playerId) RedressPlayer(selfId, time)
+    else if (!playerOnly) {
+      //   printConsole("Calling redress npc " + selfId)
+      RedressNpc(selfId, time)
+    }
+
+    // TODO: Remove npc options from settings.txt
+    // if (forceNpcs && selfId !== playerId)
+    //   RedressNpc(Actor.from(Game.getFormEx(selfId)), time)
   }
   AddHook(name, F, playerOnly)
 }

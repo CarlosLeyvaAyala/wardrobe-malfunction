@@ -16,7 +16,7 @@ import {
 } from "./config"
 import { playerId } from "./constants"
 import { LN } from "./debug"
-import { Redress, TryRestore, TrySkimpify } from "./equipment"
+import { Redress, RedressPlayer, TrySkimpify } from "./equipment"
 import { HitBySpell, HitByWeapon, LogHit } from "./hits"
 
 const LH = logHits ? LogHit : () => {}
@@ -35,7 +35,7 @@ export function main() {
   const T = () => TrySkimpify(playerId, evt.combat.powerAttacked.chance, true)
 
   const OnT2 = HK.ListenToS(DxScanCode.RightControl, devHotkeys)
-  const T2 = () => TryRestore(playerId, evt.explore.swim.recoveryTime)
+  const T2 = () => RedressPlayer(playerId, evt.explore.swim.recoveryTime)
 
   const OnRedress = HK.ListenTo(restoreEquipHk)
 
