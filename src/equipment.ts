@@ -179,14 +179,19 @@ function ClearRestoredArmors(o: number) {
 // Redress
 type RedressOp = [string, () => void]
 
-const needsToRestoreLostClothes: RedressOp = [
+const shouldRestoreLostClothesInCombat: RedressOp = [
   `You hastily ${
     restoreEquipC < 1 ? "try to put on some" : "put on all your"
   } clothes.`,
   () => RestorePlayerEquipment(WithChance),
 ]
 
-const needsToAdjustClothesInCombat: RedressOp = [
+const shouldRestoreLostClothes: RedressOp = [
+  `You put on all your lost clothes.`,
+  () => RestorePlayerEquipment(),
+]
+
+const shouldAdjustClothesInCombat: RedressOp = [
   `You hastily ${restoreEquipC < 1 ? "try to " : ""} adjust your clothes.`,
   () => RestorePlayerEquipment(WithChance),
 ]
@@ -198,16 +203,17 @@ const allIsInOrder: RedressOp = [
 
 const shouldAdjustClothes: RedressOp = [
   "You just adjusted your clothes.",
-  () => RestoreMostModest(Game.getPlayer() as Actor),
+  () => RestoreMostModest(Player()),
 ]
 
 function getRedressOperation(lostClothesQty: number): RedressOp {
   const p = Player()
   if (lostClothesQty > 0)
-    if (p.isInCombat()) return needsToAdjustClothesInCombat
-    else return needsToRestoreLostClothes
+    if (p.isInCombat()) return shouldRestoreLostClothesInCombat
+    else return shouldRestoreLostClothes
   else {
-    if (HasSkimpyArmorEquipped(p)) return shouldAdjustClothes
+    if (p.isInCombat()) return shouldAdjustClothesInCombat
+    else if (HasSkimpyArmorEquipped(p)) return shouldAdjustClothes
     else return allIsInOrder
   }
 }
