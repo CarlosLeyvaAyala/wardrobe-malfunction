@@ -16,7 +16,7 @@ import {
 } from "./config"
 import { playerId } from "./constants"
 import { LN } from "./debug"
-import { Redress, RedressPlayer, TrySkimpify } from "./equipment"
+import { manualRedress, RedressPlayer, TrySkimpify } from "./equipment"
 import { HitBySpell, HitByWeapon, LogHit } from "./hits"
 
 const LH = logHits ? LogHit : () => {}
@@ -40,7 +40,7 @@ export function main() {
   const OnRedress = HK.ListenTo(restoreEquipHk)
 
   on("update", () => {
-    OnRedress(Redress)
+    OnRedress(manualRedress)
     // OnT(T)
     // OnT2(T2)
   })

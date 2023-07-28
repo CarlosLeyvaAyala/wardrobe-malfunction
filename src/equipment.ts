@@ -1,4 +1,4 @@
-import { Player, waitActor } from "DmLib/Actor"
+import { Player, isActorTypeNPC, isPlayer, waitActor } from "DmLib/Actor"
 import { I } from "DmLib/Combinators"
 import {
   ForEachEquippedArmor,
@@ -23,7 +23,7 @@ import {
   IsNotRegistered,
   SkimpyFunc,
 } from "skimpify-api"
-import { Actor, Armor, Debug, Form, Game } from "skyrimPlatform"
+import { Actor, Armor, Debug, Form, Game, printConsole } from "skyrimPlatform"
 import {
   SkimpyEventChance,
   SkimpyEventRecoveryTime,
@@ -218,11 +218,14 @@ function getRedressOperation(lostClothesQty: number): RedressOp {
   }
 }
 
-export const Redress = () => {
-  const [m, op] = getRedressOperation(JMap.count(JDB.solveObj(playerEqK)))
-  op()
-  LN(m)
-  Debug.notification(m)
+export const manualRedress = () => {
+  const a = Actor.from(Game.getCurrentCrosshairRef())
+  if (!a || isPlayer(a) || !isActorTypeNPC(a)) {
+    const [m, op] = getRedressOperation(JMap.count(JDB.solveObj(playerEqK)))
+    op()
+    LN(m)
+    Debug.notification(m)
+  } else manualRedressNpc(a.getFormID())
 }
 
 const WithChance = (f: FormArg) => (GetChance(restoreEquipC)() ? f : null)
@@ -347,8 +350,10 @@ export const GetChance = (x: number) => () => Math.random() <= x
 
 /** @experimental
  * Makes sure an NPC doesn't get naked due to outfit not corresponding with current slutty armor */
-export function RedressNpc(formId: number, time: SkimpyEventRecoveryTime) {
-  //   printConsole("Redressing npc " + formId)
+export function RedressNpc(
+  formId: number,
+  time: SkimpyEventRecoveryTime | null = null
+) {
   const a = Actor.from(Game.getFormEx(formId))
   if (!a) return
 
@@ -371,4 +376,17 @@ export function RedressNpc(formId: number, time: SkimpyEventRecoveryTime) {
 
   RedressMostModest(a)
   //   })
+}
+
+export function manualRedressNpc(formId: number) {
+  const a = Actor.from(Game.getFormEx(formId))
+  if (!a) return
+
+  const b = a.getLeveledActorBase()
+  if (!b) return
+
+  ForEachOutfitItemR(b.getOutfit(false), (i) => {
+    if (a.isEquipped(i)) return
+    a.equipItem(i, false, true)
+  })
 }
