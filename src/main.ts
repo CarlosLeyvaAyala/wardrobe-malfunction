@@ -1,7 +1,7 @@
 import * as HK from "DmLib/Hotkeys"
 import * as Log from "DmLib/Log"
 import { CanUseArmor } from "skimpify-api"
-import { Actor, DxScanCode, HitEvent, on } from "skyrimPlatform"
+import { Actor, DxScanCode, HitEvent, on, once } from "skyrimPlatform"
 import { HookAnims } from "./animations"
 import {
   devHotkeys,
@@ -17,7 +17,7 @@ import {
 import { playerId } from "./constants"
 import { LN } from "./debug"
 import { manualRedress, RedressPlayer, TrySkimpify } from "./equipment"
-import { HitBySpell, HitByWeapon, LogHit } from "./hits"
+import { HitBySpell, HitByWeapon, LogHit, getThunderchildIds } from "./hits"
 
 const LH = logHits ? LogHit : () => {}
 export function main() {
@@ -44,6 +44,8 @@ export function main() {
     // OnT(T)
     // OnT2(T2)
   })
+
+  once("update", getThunderchildIds)
 
   //   if (redressNPC.enabled) on("objectLoaded", RedressNpcEvt)
 

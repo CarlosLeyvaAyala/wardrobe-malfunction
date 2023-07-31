@@ -192,7 +192,7 @@ const shouldRestoreLostClothes: RedressOp = [
 ]
 
 const shouldAdjustClothesInCombat: RedressOp = [
-  `You hastily ${restoreEquipC < 1 ? "try to " : ""} adjust your clothes.`,
+  `You hastily ${restoreEquipC < 1 ? "try to" : ""} adjust your clothes.`,
   () => RestorePlayerEquipment(WithChance),
 ]
 
@@ -212,7 +212,9 @@ function getRedressOperation(lostClothesQty: number): RedressOp {
     if (p.isInCombat()) return shouldRestoreLostClothesInCombat
     else return shouldRestoreLostClothes
   else {
-    if (p.isInCombat()) return shouldAdjustClothesInCombat
+    if (p.isInCombat())
+      if (HasSkimpyArmorEquipped(p)) return shouldAdjustClothesInCombat
+      else return allIsInOrder
     else if (HasSkimpyArmorEquipped(p)) return shouldAdjustClothes
     else return allIsInOrder
   }

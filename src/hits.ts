@@ -1,5 +1,6 @@
 import {
   Ammo,
+  Game,
   HitEvent,
   Weapon,
   WeaponType,
@@ -10,6 +11,7 @@ import { evt } from "./config"
 import { devLogName } from "./constants"
 import { LE } from "./debug"
 import { TrySkimpify } from "./equipment"
+import { getFormFromUniqueId } from "../../../../../SteamLibrary/steamapps/common/Skyrim Special Edition/Data/Platform/Modules/DmLib/Form"
 
 export function LogHit(e: HitEvent) {
   writeLogs(
@@ -47,6 +49,9 @@ export function HitByWeapon(e: HitEvent) {
 export function HitBySpell(e: HitEvent) {
   try {
     const id = e.source.getFormID()
+    // printConsole(id.toString(16))
+    // printConsole(id.toString(16))
+    // printConsole(id.toString(16))
     const c = IsShoutL1(id)
       ? evt.combat.fus.chance
       : IsShoutL2(id)
@@ -70,6 +75,22 @@ const fusRoDa = 0x13f3a
 const cyclone1 = 0x40200bc
 const cyclone2 = 0x40200be
 
-const IsShoutL1 = (id: number) => id === fus || id === cyclone1
-const IsShoutL2 = (id: number) => id === fusRo || id === cyclone2
-const IsShoutL3 = (id: number) => id === fusRoDa
+let kingsbane1 = -1
+let kingsbane2 = -1
+let kingsbane3 = -1
+// const kingsbaneExplosion1 = 0x14428a
+
+const IsShoutL1 = (id: number) =>
+  id === fus || id === cyclone1 || id === kingsbane1
+
+const IsShoutL2 = (id: number) =>
+  id === fusRo || id === cyclone2 || id === kingsbane2
+
+const IsShoutL3 = (id: number) => id === fusRoDa || id === kingsbane3
+
+export function getThunderchildIds() {
+  const getId = (str: string) => getFormFromUniqueId(str)?.getFormID() || -1
+  kingsbane1 = getId("Thunderchild - Epic Shout Package.esp|0x0ca92f")
+  kingsbane2 = getId("Thunderchild - Epic Shout Package.esp|0x0ca931")
+  kingsbane3 = getId("Thunderchild - Epic Shout Package.esp|0x0ca933")
+}
